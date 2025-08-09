@@ -6,13 +6,20 @@
 A Gleam validation library for validating backend api params. Currently a work-in-progress.
 Better documentation and examples Coming Soon™.
 
+## Goals
+
+- Perform exhaustive param validation for good form validation UX. Don't just stop on the first error
+- Reduce repetitive boilerplate when trying to validate endpoint params
+- Look and feel nice to use
+
 ## Motivation
 
-After building a sizable backend api in gleam, I found I was writing a lot of boilerplate code
+After building a sizeable backend api in gleam, I found I was writing a lot of boilerplate code
 to validate my endpoint params for each of my APIs. There are existing libraries for this but
-I personally didn't like how they worked, so I started to build my own internally.
-The main goal was to enforce param validation and customise the per-field validation error
-that gets returned to the client.
+I personally wasn't a fan of their API, so I started to build my own internally.
+The main goal was to enforce param validation and customise the per-field validation errors
+that get returned to the client. This allows for a nice form validation UX but can also be used
+generally to enforce arbitrary requirements on params submitted to your endpoints.
 
 Now, I feel like my solution has matured enough to be useful to others so I'm moving it out into
 this package.
