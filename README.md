@@ -26,7 +26,11 @@ type LoginParams {
 
 // your code here...
 
-/// Validates login params, where `ErrorValidatingParams` is your own validation error type
+/// Validates login params, where `ErrorValidatingParams` is your own validation error type.
+///
+/// Function returns a result with a list of validation errors. These errors
+/// can be used to build a map of key value pairs, where the keys is the param name and value
+/// is the validation error message.
 fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
   [
     valguard.with("email", params.email, [val.required, val.email_is_valid]),
