@@ -1,3 +1,4 @@
+import gleam/float
 import gleam/int
 import gleam/regexp
 import gleam/result
@@ -8,14 +9,6 @@ import gleam/time/timestamp
 ///
 /// See spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
 const email_regex_pattern: String = "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-
-/// Requires a string to not be empty to be considered required
-pub fn string_required(value: String) -> Result(Nil, String) {
-  case string.is_empty(value) {
-    False -> Ok(Nil)
-    True -> Error("This field is required")
-  }
-}
 
 /// Requires a int to be at least 1 to be considered required
 pub fn int_required(value: Int) -> Result(Nil, String) {
@@ -35,6 +28,30 @@ pub fn int_max(value: Int, max maximum: Int) -> Result(Nil, String) {
   case value > maximum {
     True -> Error("Value must be a maximum of " <> int.to_string(maximum))
     False -> Ok(Nil)
+  }
+}
+
+/// Validates an float is at least a minimum value. Returns an error if value is less than the minimum
+pub fn float_min(value: Float, min minimum: Float) -> Result(Nil, String) {
+  case value <. minimum {
+    True -> Error("Value must be a minimum of " <> float.to_string(minimum))
+    False -> Ok(Nil)
+  }
+}
+
+/// Validates an float is at most a maximum value. Returns an error if value is greater than the maximum
+pub fn float_max(value: Float, max maximum: Float) -> Result(Nil, String) {
+  case value >. maximum {
+    True -> Error("Value must be a maximum of " <> float.to_string(maximum))
+    False -> Ok(Nil)
+  }
+}
+
+/// Requires a string to not be empty to be considered required
+pub fn string_required(value: String) -> Result(Nil, String) {
+  case string.is_empty(value) {
+    False -> Ok(Nil)
+    True -> Error("This field is required")
   }
 }
 

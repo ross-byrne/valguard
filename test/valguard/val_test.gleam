@@ -1,10 +1,5 @@
 import valguard/val
 
-pub fn string_required_test() {
-  assert Ok(Nil) == val.string_required("Some Value")
-  assert Error("This field is required") == val.string_required("")
-}
-
 pub fn require_int_test() {
   assert Ok(Nil) == val.int_required(100)
   assert Ok(Nil) == val.int_required(1)
@@ -23,6 +18,29 @@ pub fn int_max_test() {
   assert Ok(Nil) == val.int_max(100, max: 100)
   assert Error("Value must be a maximum of 100") == val.int_max(101, max: 100)
   assert Error("Value must be a maximum of -1") == val.int_max(1, max: -1)
+}
+
+pub fn float_min_test() {
+  assert Ok(Nil) == val.float_min(100.0, min: 5.0)
+  assert Ok(Nil) == val.float_min(100.0, min: 100.0)
+  assert Error("Value must be a minimum of 100.0")
+    == val.float_min(99.0, min: 100.0)
+  assert Error("Value must be a minimum of 1.0")
+    == val.float_min(-1.0, min: 1.0)
+}
+
+pub fn float_max_test() {
+  assert Ok(Nil) == val.float_max(5.0, max: 100.0)
+  assert Ok(Nil) == val.float_max(100.0, max: 100.0)
+  assert Error("Value must be a maximum of 100.0")
+    == val.float_max(101.0, max: 100.0)
+  assert Error("Value must be a maximum of -1.0")
+    == val.float_max(1.0, max: -1.0)
+}
+
+pub fn string_required_test() {
+  assert Ok(Nil) == val.string_required("Some Value")
+  assert Error("This field is required") == val.string_required("")
 }
 
 pub fn string_min_test() {
