@@ -3,7 +3,7 @@
 [![Package Version](https://img.shields.io/hexpm/v/valguard)](https://hex.pm/packages/valguard)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/valguard/)
 
-A Gleam validation library for validating backend api params. Currently a work-in-progress.
+A Gleam validation library for form and api endpoint validation. Currently a work-in-progress.
 Better documentation and examples Coming Soon™.
 
 ## Examples

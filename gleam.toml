@@ -1,6 +1,6 @@
 name = "valguard"
 version = "0.1.0"
-description = "A Gleam validation library for validating backend api params."
+description = "A Gleam validation library for form and api endpoint validation"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "ross-byrne", repo = "valguard" }
 
