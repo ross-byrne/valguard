@@ -77,6 +77,13 @@ pub fn string_max(value: String, max maximum: Int) -> Result(Nil, String) {
   }
 }
 
+// TODO: add more string validations
+// - starts_with
+// - ends_with
+// - includes
+// - length
+// - regex
+
 /// Validates if entered email is a valid email address
 pub fn email_is_valid(email: String) -> Result(Nil, String) {
   let error = "Email address is not valid"
