@@ -11,14 +11,14 @@ pub fn append_error_test() {
   let value = "I am a value"
   let value2 = ""
   let errors =
-    valguard.with("username", value, [val.required])
+    valguard.with("username", value, [val.string_required])
     |> valguard.append_error([])
 
   // list should be empty
   assert list.is_empty(errors) == True
 
   let errors =
-    valguard.with("username", value2, [val.required])
+    valguard.with("username", value2, [val.string_required])
     |> valguard.append_error(errors)
 
   assert list.length(errors) == 1
@@ -32,8 +32,8 @@ pub fn collect_errors_returns_empty_list_test() {
   let email = "hello@test.com"
   let errors =
     [
-      valguard.with("username", username, [val.required]),
-      valguard.with("email", email, [val.required, val.email_is_valid]),
+      valguard.with("username", username, [val.string_required]),
+      valguard.with("email", email, [val.string_required, val.email_is_valid]),
     ]
     |> valguard.collect_errors
 
@@ -46,9 +46,9 @@ pub fn collect_errors_returns_validation_errors_test() {
   let password = ""
   let errors =
     [
-      valguard.with("username", username, [val.required]),
-      valguard.with("email", email, [val.required, val.email_is_valid]),
-      valguard.with("password", password, [val.required]),
+      valguard.with("username", username, [val.string_required]),
+      valguard.with("email", email, [val.string_required, val.email_is_valid]),
+      valguard.with("password", password, [val.string_required]),
     ]
     |> valguard.collect_errors
 
@@ -64,10 +64,10 @@ pub fn single_validation_test() {
   let correct = "I'm a value"
   let wrong = ""
 
-  let result = valguard.single("correct", val.required(correct))
+  let result = valguard.single("correct", val.string_required(correct))
   let assert Ok(Nil) = result
 
-  let result = valguard.single("wrong", val.required(wrong))
+  let result = valguard.single("wrong", val.string_required(wrong))
   let assert Error(ValidationError(
     key: "wrong",
     value: "This field is required",
@@ -79,7 +79,7 @@ pub fn list_using_single_value_test() {
   let errors = []
   let errors =
     valguard.list("username", [
-      fn() { val.required(value) },
+      fn() { val.string_required(value) },
       fn() { val.email_is_valid(value) },
     ])
     |> valguard.append_error(errors)
@@ -95,9 +95,9 @@ pub fn list_using_multiple_values_test() {
   let email = "hello@test.com"
   let errors =
     [
-      valguard.list("username", [fn() { val.required(username) }]),
+      valguard.list("username", [fn() { val.string_required(username) }]),
       valguard.list("email", [
-        fn() { val.required(email) },
+        fn() { val.string_required(email) },
         fn() { val.email_is_valid(email) },
       ]),
     ]
@@ -110,7 +110,10 @@ pub fn with_using_single_value_test() {
   let username = "I am another value"
   let errors = []
   let errors =
-    valguard.with("username", username, [val.required, val.email_is_valid])
+    valguard.with("username", username, [
+      val.string_required,
+      val.email_is_valid,
+    ])
     |> valguard.append_error(errors)
 
   assert list.length(errors) == 1
@@ -125,8 +128,8 @@ pub fn with_using_multiple_values_test() {
   let email = "hello@test.com"
   let errors =
     [
-      valguard.with("username", username, [val.required]),
-      valguard.with("email", email, [val.required, val.email_is_valid]),
+      valguard.with("username", username, [val.string_required]),
+      valguard.with("email", email, [val.string_required, val.email_is_valid]),
     ]
     |> list.flat_map(fn(x) { valguard.append_error(x, []) })
 
@@ -138,9 +141,9 @@ pub fn with_using_manual_fn_test() {
   let email = "hello@test.com"
   let errors =
     [
-      valguard.with("username", username, [val.required]),
+      valguard.with("username", username, [val.string_required]),
       valguard.with("email", email, [
-        val.required,
+        val.string_required,
         fn(x) { val.email_is_valid(x) },
       ]),
     ]

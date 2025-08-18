@@ -1,8 +1,8 @@
 import valguard/val
 
-pub fn required_test() {
-  assert Ok(Nil) == val.required("Some Value")
-  assert Error("This field is required") == val.required("")
+pub fn string_required_test() {
+  assert Ok(Nil) == val.string_required("Some Value")
+  assert Error("This field is required") == val.string_required("")
 }
 
 pub fn require_int_test() {

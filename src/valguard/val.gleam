@@ -9,20 +9,20 @@ import gleam/time/timestamp
 /// See spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
 const email_regex_pattern: String = "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
-/// Validates input. Returns option with error message
-pub fn required(value: String) -> Result(Nil, String) {
+/// Requires a string to not be empty to be considered required
+pub fn string_required(value: String) -> Result(Nil, String) {
   case string.is_empty(value) {
     False -> Ok(Nil)
     True -> Error("This field is required")
   }
 }
 
-/// Validates input. Requires a int to be at least 1 to be considered required
+/// Requires a int to be at least 1 to be considered required
 pub fn int_required(value: Int) -> Result(Nil, String) {
   int_min(value, min: 1) |> result.replace_error("This field is required")
 }
 
-/// Validates value is at least a minimum value
+/// Validates an int is at least a minimum value. Returns an error if value is less than the minimum
 pub fn int_min(value: Int, min minimum: Int) -> Result(Nil, String) {
   case value < minimum {
     True -> Error("Value must be a minimum of " <> int.to_string(minimum))
@@ -30,7 +30,7 @@ pub fn int_min(value: Int, min minimum: Int) -> Result(Nil, String) {
   }
 }
 
-/// Validates value is at most a maximum value
+/// Validates an int is at most a maximum value. Returns an error if value is greater than the maximum
 pub fn int_max(value: Int, max maximum: Int) -> Result(Nil, String) {
   case value > maximum {
     True -> Error("Value must be a maximum of " <> int.to_string(maximum))
@@ -38,7 +38,7 @@ pub fn int_max(value: Int, max maximum: Int) -> Result(Nil, String) {
   }
 }
 
-/// Validates a string is a minimum value
+/// Validates a string is a minimum length
 pub fn string_min(value: String, min minimum: Int) -> Result(Nil, String) {
   case string.length(value) < minimum {
     True ->
@@ -49,7 +49,7 @@ pub fn string_min(value: String, min minimum: Int) -> Result(Nil, String) {
   }
 }
 
-/// Validates a string is at most a maximum value
+/// Validates a string is at most a maximum length
 pub fn string_max(value: String, max maximum: Int) -> Result(Nil, String) {
   case string.length(value) > maximum {
     True ->
@@ -75,7 +75,7 @@ pub fn email_is_valid(email: String) -> Result(Nil, String) {
   }
 }
 
-/// tests if a date can be parsed correctly
+/// Validates that a date is valid by checking it can be parsed correctly
 pub fn date_is_valid(datetime: String) -> Result(Nil, String) {
   case timestamp.parse_rfc3339(datetime) {
     Ok(_) -> Ok(Nil)
