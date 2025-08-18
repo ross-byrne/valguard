@@ -33,8 +33,8 @@ type LoginParams {
 /// is the validation error message.
 fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
   [
-    valguard.with("email", params.email, [val.required, val.email_is_valid]),
-    valguard.with("password", params.password, [val.required]),
+    valguard.with("email", params.email, [val.string_required, val.email_is_valid]),
+    valguard.with("password", params.password, [val.string_required]),
   ]
   |> valguard.collect_errors
   |> valguard.prepare_with(ErrorValidatingParams)
