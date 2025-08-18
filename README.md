@@ -56,9 +56,6 @@ The main goal was to enforce param validation and customise the per-field valida
 that get returned to the client. This allows for a nice form validation UX but can also be used
 generally to enforce arbitrary requirements on params submitted to your endpoints.
 
-Now, I feel like my solution has matured enough to be useful to others so I'm moving it out into
-this package.
-
 ## Development
 
 ```sh
