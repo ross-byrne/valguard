@@ -70,6 +70,7 @@ pub fn wrap_result(
 }
 
 /// Validates a single validation function
+@deprecated("Use function `with` instead")
 pub fn single(
   key: String,
   validation_result: Result(Nil, String),
