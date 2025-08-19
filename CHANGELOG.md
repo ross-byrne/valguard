@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.0
 
 - Deprecated the function `single` in favour of `with`
 - Added `float_required` function
