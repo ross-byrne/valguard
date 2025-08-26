@@ -1,4 +1,4 @@
-import valguard.{type ValidationError}
+import valguard.{type ValidationError, ValidationError}
 import valguard/val
 
 type LoginParams {
@@ -23,7 +23,34 @@ fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
 }
 
 pub fn login_form_validates_successfully_test() {
-  let login_params = LoginParams(email: "testing@test.com", password: "qwerty")
-  let result = validate_params(login_params)
+  let params = LoginParams(email: "testing@test.com", password: "qwerty")
+  let result = validate_params(params)
   assert result == Ok(Nil)
+}
+
+pub fn login_form_is_missing_fields_test() {
+  let params = LoginParams(email: "", password: "")
+  let actual = validate_params(params)
+  let expected =
+    Error(
+      ErrorValidatingParams([
+        ValidationError(key: "email", value: "This field is required"),
+        ValidationError(key: "password", value: "This field is required"),
+      ]),
+    )
+
+  assert actual == expected
+}
+
+pub fn login_form_has_invalid_email_test() {
+  let params = LoginParams(email: "not an email", password: "qwerty")
+  let actual = validate_params(params)
+  let expected =
+    Error(
+      ErrorValidatingParams([
+        ValidationError(key: "email", value: "Email address is not valid"),
+      ]),
+    )
+
+  assert actual == expected
 }
