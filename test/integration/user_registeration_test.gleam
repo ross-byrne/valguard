@@ -3,15 +3,11 @@
 //// Shows how to wrap the validation errors in your own custom error type
 //// and the use of custom validation functions, one of which takes a database connection
 
-import gleam/result
+import integration/shared/custom_functions.{Connection} as cf
 import valguard.{type ValidationError, ValidationError}
 import valguard/val
 
 // ================== Test setup ===================
-
-type Connection {
-  Connection
-}
 
 type RegisterParams {
   RegisterParams(
@@ -27,44 +23,9 @@ type Errors {
   ErrorValidatingParams(List(ValidationError))
 }
 
-/// Custom validation function that takes a database connection
-fn user_email_is_available(
-  _db: Connection,
-  email: String,
-) -> Result(Nil, String) {
-  // make your db call here
-  case email != "email@taken.com" {
-    True -> Ok(Nil)
-    False -> Error("Email address is not available")
-  }
-}
-
-/// Validates that password and confirm password match
-fn passwords_match(password: String, confirm: String) -> Result(Nil, String) {
-  case password == confirm {
-    True -> Ok(Nil)
-    False -> Error("Password & Confirm Password must match")
-  }
-}
-
-/// Validates password requirements
-fn password_requirements(password: String) -> Result(Nil, String) {
-  // enforce minimum password length of 8 characters and max of 64
-  use _ <- result.try(
-    val.string_min(password, min: 8)
-    |> result.replace_error("Password must be a minimum of 8 characters"),
-  )
-  use _ <- result.try(
-    val.string_max(password, max: 64)
-    |> result.replace_error("Password must be a maximum of 64 characters"),
-  )
-
-  Ok(Nil)
-}
-
 /// Validates register params
 fn validate_params(
-  db: Connection,
+  db: cf.Connection,
   params: RegisterParams,
 ) -> Result(Nil, Errors) {
   [
@@ -73,15 +34,15 @@ fn validate_params(
     valguard.with("email", params.email, [
       val.string_required,
       val.email_is_valid,
-      user_email_is_available(db, _),
+      cf.user_email_is_available(db, _),
     ]),
     valguard.with("password", params.password, [
       val.string_required,
-      password_requirements,
+      cf.password_requirements,
     ]),
-    valguard.with("confirm_password", params.confirm_password, [
-      val.string_required,
-      fn(_) { passwords_match(params.password, params.confirm_password) },
+    valguard.list("confirm_password", [
+      fn() { val.string_required(params.confirm_password) },
+      fn() { cf.passwords_match(params.password, params.confirm_password) },
     ]),
   ]
   |> valguard.collect_errors
