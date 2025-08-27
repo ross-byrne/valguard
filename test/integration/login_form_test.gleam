@@ -5,6 +5,8 @@
 import valguard.{type ValidationError, ValidationError}
 import valguard/val
 
+// ================== Test setup ===================
+
 type LoginParams {
   LoginParams(email: String, password: String)
 }
@@ -25,6 +27,8 @@ fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
   |> valguard.collect_errors
   |> valguard.prepare_with(ErrorValidatingParams)
 }
+
+// ================== Tests ===================
 
 pub fn login_form_validates_successfully_test() {
   let params = LoginParams(email: "testing@test.com", password: "qwerty")
