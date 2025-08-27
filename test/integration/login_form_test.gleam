@@ -1,3 +1,7 @@
+//// Integration test to show how a login form might be validated
+////
+//// Shows how to wrap the validation errors in your own custom error type
+
 import valguard.{type ValidationError, ValidationError}
 import valguard/val
 
