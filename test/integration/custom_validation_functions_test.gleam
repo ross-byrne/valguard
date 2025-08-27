@@ -1,7 +1,11 @@
 //// Integration test to show how custom validation functions can be used
 
-import integration/shared/custom_functions.{Connection} as cf
+import integration/shared/custom_functions as cf
 import valguard.{ValidationError}
+
+type Connection {
+  Connection
+}
 
 pub fn custom_validation_function_passes_test() {
   let actual =

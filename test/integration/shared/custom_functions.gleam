@@ -3,15 +3,8 @@
 import gleam/result
 import valguard/val
 
-pub type Connection {
-  Connection
-}
-
 /// Custom validation function that takes a database connection
-pub fn user_email_is_available(
-  _db: Connection,
-  email: String,
-) -> Result(Nil, String) {
+pub fn user_email_is_available(_db, email: String) -> Result(Nil, String) {
   // make your db call here
   case email != "email@taken.com" {
     True -> Ok(Nil)

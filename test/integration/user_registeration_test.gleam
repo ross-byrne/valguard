@@ -3,11 +3,15 @@
 //// Shows how to wrap the validation errors in your own custom error type
 //// and the use of custom validation functions, one of which takes a database connection
 
-import integration/shared/custom_functions.{Connection} as cf
+import integration/shared/custom_functions as cf
 import valguard.{type ValidationError, ValidationError}
 import valguard/val
 
 // ================== Test setup ===================
+
+type Connection {
+  Connection
+}
 
 type RegisterParams {
   RegisterParams(
@@ -25,7 +29,7 @@ type Errors {
 
 /// Validates register params
 fn validate_params(
-  db: cf.Connection,
+  db: Connection,
   params: RegisterParams,
 ) -> Result(Nil, Errors) {
   [
