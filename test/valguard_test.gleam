@@ -7,24 +7,30 @@ pub fn main() -> Nil {
   gleeunit.main()
 }
 
-pub fn append_error_test() {
-  let value = "I am a value"
-  let value2 = ""
-  let errors =
-    valguard.with("username", value, [val.string_required])
-    |> valguard.append_error([])
+pub fn append_error_ignores_ok_values_test() {
+  let result = Ok(Nil)
+  let actual = valguard.append_error(result, [])
+  let expected = []
 
-  // list should be empty
-  assert list.is_empty(errors) == True
+  assert actual == expected
+}
 
-  let errors =
-    valguard.with("username", value2, [val.string_required])
-    |> valguard.append_error(errors)
+pub fn append_error_appends_error_value_test() {
+  let error = ValidationError(key: "test", value: "test")
+  let actual = valguard.append_error(Error(error), [])
+  let expected = [error]
 
-  assert list.length(errors) == 1
-  let assert Ok(first) = list.first(errors)
-  assert first.key == "username"
-  assert first.value == "This field is required"
+  assert actual == expected
+}
+
+pub fn append_error_appends_error_to_populated_list_test() {
+  let error1 = ValidationError(key: "e1", value: "e1")
+  let error2 = ValidationError(key: "e2", value: "e2")
+
+  let actual = valguard.append_error(Error(error2), [error1])
+  let expected = [error1, error2]
+
+  assert actual == expected
 }
 
 pub fn collect_errors_returns_empty_list_test() {
