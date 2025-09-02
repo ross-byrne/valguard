@@ -33,37 +33,23 @@ pub fn append_error_appends_error_to_populated_list_test() {
   assert actual == expected
 }
 
-pub fn collect_errors_returns_empty_list_test() {
-  let username = "I am value"
-  let email = "hello@test.com"
-  let errors =
-    [
-      valguard.with("username", username, [val.string_required]),
-      valguard.with("email", email, [val.string_required, val.email_is_valid]),
-    ]
-    |> valguard.collect_errors
+pub fn collect_errors_returns_empty_list_when_passed_ok_values_test() {
+  let result_list = [Ok(Nil), Ok(Nil)]
+  let actual = valguard.collect_errors(result_list)
+  let expected = []
 
-  assert list.is_empty(errors)
+  assert actual == expected
 }
 
 pub fn collect_errors_returns_validation_errors_test() {
-  let username = "I am value"
-  let email = "notanemail"
-  let password = ""
-  let errors =
-    [
-      valguard.with("username", username, [val.string_required]),
-      valguard.with("email", email, [val.string_required, val.email_is_valid]),
-      valguard.with("password", password, [val.string_required]),
-    ]
-    |> valguard.collect_errors
+  let e1 = ValidationError(key: "e1", value: "e1")
+  let e2 = ValidationError(key: "e2", value: "e2")
+  let result_list = [Error(e1), Ok(Nil), Error(e2)]
 
-  // check error values are correct
-  assert [
-      ValidationError(key: "email", value: "Email address is not valid"),
-      ValidationError(key: "password", value: "This field is required"),
-    ]
-    == errors
+  let actual = valguard.collect_errors(result_list)
+  let expected = [e1, e2]
+
+  assert actual == expected
 }
 
 pub fn single_validation_test() {
