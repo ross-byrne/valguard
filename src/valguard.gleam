@@ -82,7 +82,10 @@ pub fn single(
 }
 
 /// Validates a list of requirements lazily.
-/// Returns Ok(Nil) if success, Error(String) at first issue
+///
+/// Takes a key and list of validation functions.
+///
+/// Returns Ok(Nil) if success or Error(String) at first issue
 pub fn list(
   key: String,
   list: List(fn() -> Result(Nil, String)),
@@ -107,8 +110,12 @@ fn list_inner(
   }
 }
 
+/// Validates a list of requirements lazily.
+///
 /// Takes a key, value and list of validation functions.
-/// Runs then lazily and returns the result.
+///
+/// Runs validation functions lazily and returns the result.
+/// Returns Ok(Nil) if success or Error(String) at first issue
 pub fn with(
   key: String,
   value,

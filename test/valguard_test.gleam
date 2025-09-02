@@ -1,7 +1,5 @@
-import gleam/list
 import gleeunit
 import valguard.{type ValidationError, ValidationError}
-import valguard/val
 
 pub fn main() -> Nil {
   gleeunit.main()
@@ -128,48 +126,33 @@ pub fn list_executes_functions_lazily_and_returns_on_first_error_test() {
   assert actual == expected
 }
 
-pub fn with_using_single_value_test() {
-  let username = "I am another value"
-  let errors = []
-  let errors =
-    valguard.with("username", username, [
-      val.string_required,
-      val.email_is_valid,
-    ])
-    |> valguard.append_error(errors)
-
-  assert list.length(errors) == 1
-  let assert Ok(first) = list.first(errors)
-
-  assert first.key == "username"
-  assert first.value == "Email address is not valid"
+pub fn with_returns_ok_when_functions_return_ok_test() {
+  let validations = [
+    fn(_v) { Ok(Nil) },
+    fn(_v) { Ok(Nil) },
+  ]
+  let actual = valguard.with("test", "value", validations)
+  let expected = Ok(Nil)
+  assert actual == expected
 }
 
-pub fn with_using_multiple_values_test() {
-  let username = "I am another value"
-  let email = "hello@test.com"
-  let errors =
-    [
-      valguard.with("username", username, [val.string_required]),
-      valguard.with("email", email, [val.string_required, val.email_is_valid]),
-    ]
-    |> list.flat_map(fn(x) { valguard.append_error(x, []) })
-
-  assert list.is_empty(errors)
+pub fn with_returns_validation_errors_when_functions_return_error_test() {
+  let validations = [
+    fn(_v) { Ok(Nil) },
+    fn(_v) { Error("e1") },
+  ]
+  let actual = valguard.with("test", "value", validations)
+  let expected = Error(ValidationError(key: "test", value: "e1"))
+  assert actual == expected
 }
 
-pub fn with_using_manual_fn_test() {
-  let username = "I am another value"
-  let email = "hello@test.com"
-  let errors =
-    [
-      valguard.with("username", username, [val.string_required]),
-      valguard.with("email", email, [
-        val.string_required,
-        fn(x) { val.email_is_valid(x) },
-      ]),
-    ]
-    |> list.flat_map(fn(x) { valguard.append_error(x, []) })
-
-  assert list.is_empty(errors)
+pub fn with_executes_functions_lazily_and_returns_on_first_error_test() {
+  let validations = [
+    fn(_v) { Ok(Nil) },
+    fn(_v) { Error("first") },
+    fn(_v) { Error("second") },
+  ]
+  let actual = valguard.with("test", "value", validations)
+  let expected = Error(ValidationError(key: "test", value: "first"))
+  assert actual == expected
 }
