@@ -4,6 +4,7 @@
 
 - Updated unit tests
 - Added integration tests
+- Deprecated function `wrap_result`
 
 
 ## v0.2.0

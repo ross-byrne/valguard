@@ -62,6 +62,7 @@ pub fn prepare_with(
 }
 
 /// Wrap list of errors from a Validation Result in a custom type.
+@deprecated("Function will be removed in next release. If needed, you can implement it yourself.")
 pub fn wrap_result(
   result: Result(Nil, List(ValidationError)),
   custom_type,
