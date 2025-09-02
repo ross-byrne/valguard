@@ -94,7 +94,7 @@ pub fn list(
   }
 }
 
-/// Inner recursive loop for lazy_validate
+/// Inner recursive loop for list
 fn list_inner(
   list: List(fn() -> Result(Nil, String)),
   prev: Result(Nil, String),
@@ -121,7 +121,7 @@ pub fn with(
   }
 }
 
-/// Inner recursive loop for validate_with
+/// Inner recursive loop for with
 fn with_inner(
   list: List(fn(value) -> Result(Nil, String)),
   value,

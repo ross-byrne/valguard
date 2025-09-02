@@ -85,18 +85,16 @@ pub fn prepare_with_returns_custom_error_with_validation_list_inside_test() {
   assert actual == expected
 }
 
-pub fn single_validation_test() {
-  let correct = "I'm a value"
-  let wrong = ""
+pub fn single_returns_ok_test() {
+  let actual = valguard.single("test", Ok(Nil))
+  let expected = Ok(Nil)
+  assert actual == expected
+}
 
-  let result = valguard.single("correct", val.string_required(correct))
-  let assert Ok(Nil) = result
-
-  let result = valguard.single("wrong", val.string_required(wrong))
-  let assert Error(ValidationError(
-    key: "wrong",
-    value: "This field is required",
-  )) = result
+pub fn single_returns_validation_error_test() {
+  let actual = valguard.single("test", Error("test"))
+  let expected = Error(ValidationError(key: "test", value: "test"))
+  assert actual == expected
 }
 
 pub fn list_using_single_value_test() {
