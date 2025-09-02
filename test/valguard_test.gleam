@@ -97,36 +97,35 @@ pub fn single_returns_validation_error_test() {
   assert actual == expected
 }
 
-pub fn list_using_single_value_test() {
-  let value = "I am a value"
-  let errors = []
-  let errors =
-    valguard.list("username", [
-      fn() { val.string_required(value) },
-      fn() { val.email_is_valid(value) },
-    ])
-    |> valguard.append_error(errors)
-
-  assert list.length(errors) == 1
-  let assert Ok(first) = list.first(errors)
-  assert first.key == "username"
-  assert first.value == "Email address is not valid"
+pub fn list_returns_ok_when_functions_return_ok_test() {
+  let validations = [
+    fn() { Ok(Nil) },
+    fn() { Ok(Nil) },
+  ]
+  let actual = valguard.list("test", validations)
+  let expected = Ok(Nil)
+  assert actual == expected
 }
 
-pub fn list_using_multiple_values_test() {
-  let username = "I am another value"
-  let email = "hello@test.com"
-  let errors =
-    [
-      valguard.list("username", [fn() { val.string_required(username) }]),
-      valguard.list("email", [
-        fn() { val.string_required(email) },
-        fn() { val.email_is_valid(email) },
-      ]),
-    ]
-    |> list.flat_map(fn(x) { valguard.append_error(x, []) })
+pub fn list_returns_validation_errors_when_functions_return_error_test() {
+  let validations = [
+    fn() { Ok(Nil) },
+    fn() { Error("e1") },
+  ]
+  let actual = valguard.list("test", validations)
+  let expected = Error(ValidationError(key: "test", value: "e1"))
+  assert actual == expected
+}
 
-  assert list.is_empty(errors)
+pub fn list_executes_functions_lazily_and_returns_on_first_error_test() {
+  let validations = [
+    fn() { Ok(Nil) },
+    fn() { Error("first") },
+    fn() { Error("second") },
+  ]
+  let actual = valguard.list("test", validations)
+  let expected = Error(ValidationError(key: "test", value: "first"))
+  assert actual == expected
 }
 
 pub fn with_using_single_value_test() {
