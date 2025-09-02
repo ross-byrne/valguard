@@ -82,7 +82,10 @@ pub fn single(
 }
 
 /// Validates a list of requirements lazily.
-/// Returns Ok(Nil) if success, Error(String) at first issue
+///
+/// Takes a key and list of validation functions.
+///
+/// Returns Ok(Nil) if success or Error(String) at first issue
 pub fn list(
   key: String,
   list: List(fn() -> Result(Nil, String)),
@@ -94,7 +97,7 @@ pub fn list(
   }
 }
 
-/// Inner recursive loop for lazy_validate
+/// Inner recursive loop for list
 fn list_inner(
   list: List(fn() -> Result(Nil, String)),
   prev: Result(Nil, String),
@@ -107,8 +110,12 @@ fn list_inner(
   }
 }
 
+/// Validates a list of requirements lazily.
+///
 /// Takes a key, value and list of validation functions.
-/// Runs then lazily and returns the result.
+///
+/// Runs validation functions lazily and returns the result.
+/// Returns Ok(Nil) if success or Error(String) at first issue
 pub fn with(
   key: String,
   value,
@@ -121,7 +128,7 @@ pub fn with(
   }
 }
 
-/// Inner recursive loop for validate_with
+/// Inner recursive loop for with
 fn with_inner(
   list: List(fn(value) -> Result(Nil, String)),
   value,

@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Added more integration tests
+- Updated unit tests
+- Added integration tests
+
 
 ## v0.2.0
 
