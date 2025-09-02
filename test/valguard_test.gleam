@@ -1,6 +1,6 @@
 import gleam/list
 import gleeunit
-import valguard.{ValidationError}
+import valguard.{type ValidationError, ValidationError}
 import valguard/val
 
 pub fn main() -> Nil {
@@ -61,6 +61,27 @@ pub fn prepare_returns_error_result_with_validation_list_test() {
 
   let actual = valguard.prepare(error_list)
   let expected = Error(error_list)
+  assert actual == expected
+}
+
+type CustomError {
+  CustomError(List(ValidationError))
+}
+
+pub fn prepare_with_returns_ok_result_for_empty_list_test() {
+  let actual = valguard.prepare_with([], CustomError)
+  let expected = Ok(Nil)
+  assert actual == expected
+}
+
+pub fn prepare_with_returns_custom_error_with_validation_list_inside_test() {
+  let error_list = [
+    ValidationError(key: "e1", value: "e1"),
+    ValidationError(key: "e2", value: "e2"),
+  ]
+
+  let actual = valguard.prepare_with(error_list, CustomError)
+  let expected = Error(CustomError(error_list))
   assert actual == expected
 }
 
