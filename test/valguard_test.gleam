@@ -11,7 +11,6 @@ pub fn append_error_ignores_ok_values_test() {
   let result = Ok(Nil)
   let actual = valguard.append_error(result, [])
   let expected = []
-
   assert actual == expected
 }
 
@@ -19,7 +18,6 @@ pub fn append_error_appends_error_value_test() {
   let error = ValidationError(key: "test", value: "test")
   let actual = valguard.append_error(Error(error), [])
   let expected = [error]
-
   assert actual == expected
 }
 
@@ -29,7 +27,6 @@ pub fn append_error_appends_error_to_populated_list_test() {
 
   let actual = valguard.append_error(Error(error2), [error1])
   let expected = [error1, error2]
-
   assert actual == expected
 }
 
@@ -37,7 +34,6 @@ pub fn collect_errors_returns_empty_list_when_passed_ok_values_test() {
   let result_list = [Ok(Nil), Ok(Nil)]
   let actual = valguard.collect_errors(result_list)
   let expected = []
-
   assert actual == expected
 }
 
@@ -48,7 +44,23 @@ pub fn collect_errors_returns_validation_errors_test() {
 
   let actual = valguard.collect_errors(result_list)
   let expected = [e1, e2]
+  assert actual == expected
+}
 
+pub fn prepare_returns_ok_result_for_empty_list_test() {
+  let actual = valguard.prepare([])
+  let expected = Ok(Nil)
+  assert actual == expected
+}
+
+pub fn prepare_returns_error_result_with_validation_list_test() {
+  let error_list = [
+    ValidationError(key: "e1", value: "e1"),
+    ValidationError(key: "e2", value: "e2"),
+  ]
+
+  let actual = valguard.prepare(error_list)
+  let expected = Error(error_list)
   assert actual == expected
 }
 
