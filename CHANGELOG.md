@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.0
 
 - Removed deprecated functions `single` and `wrap_result`
 
