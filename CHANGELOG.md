@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Removed deprecated functions `single` and `wrap_result`
+
 ## v0.2.1
 
 - Updated unit tests

@@ -83,18 +83,6 @@ pub fn prepare_with_returns_custom_error_with_validation_list_inside_test() {
   assert actual == expected
 }
 
-pub fn single_returns_ok_test() {
-  let actual = valguard.single("test", Ok(Nil))
-  let expected = Ok(Nil)
-  assert actual == expected
-}
-
-pub fn single_returns_validation_error_test() {
-  let actual = valguard.single("test", Error("test"))
-  let expected = Error(ValidationError(key: "test", value: "test"))
-  assert actual == expected
-}
-
 pub fn list_returns_ok_when_functions_return_ok_test() {
   let validations = [
     fn() { Ok(Nil) },

@@ -61,27 +61,6 @@ pub fn prepare_with(
   }
 }
 
-/// Wrap list of errors from a Validation Result in a custom type.
-@deprecated("Function will be removed in next release. If needed, you can implement it yourself.")
-pub fn wrap_result(
-  result: Result(Nil, List(ValidationError)),
-  custom_type,
-) -> Result(Nil, custom_type) {
-  result.map_error(result, fn(errors) { custom_type(errors) })
-}
-
-/// Validates a single validation function
-@deprecated("Use function `with` instead")
-pub fn single(
-  key: String,
-  validation_result: Result(Nil, String),
-) -> Result(Nil, ValidationError) {
-  case validation_result {
-    Ok(Nil) -> Ok(Nil)
-    Error(value) -> Error(ValidationError(key:, value:))
-  }
-}
-
 /// Validates a list of requirements lazily.
 ///
 /// Takes a key and list of validation functions.
