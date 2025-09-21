@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0
+
+- Added `with_optional` function for handling validation of optional values.
+Returns early with `Ok(Nil)` if value is `None`.
+
 ## v0.3.0
 
 - Removed deprecated functions `single` and `wrap_result`
@@ -9,7 +14,6 @@
 - Updated unit tests
 - Added integration tests
 - Deprecated function `wrap_result`
-
 
 ## v0.2.0
 

@@ -1,5 +1,7 @@
 import gleam/list
+import gleam/option.{type Option}
 import gleam/result
+import valguard/internal/utils
 
 /// Key/Value pair for encoding validation errors.
 /// Key indicates the name of the field that failed validation
@@ -101,6 +103,28 @@ pub fn with(
   value,
   list: List(fn(value) -> Result(Nil, String)),
 ) -> Result(Nil, ValidationError) {
+  // recursively check list of validations
+  case with_inner(list, value, Ok(Nil)) {
+    Ok(Nil) -> Ok(Nil)
+    Error(value) -> Error(ValidationError(key:, value:))
+  }
+}
+
+/// Validates a list of requirements lazily.
+///
+/// Takes a key, an optional value and list of validation functions.
+///
+/// Runs validation functions lazily and returns the result.
+/// Returns Ok(Nil) if optional value is None or all validations are successful.
+/// Returns Error(String) at first issue.
+pub fn with_optional(
+  key: String,
+  option: Option(value),
+  list: List(fn(value) -> Result(Nil, String)),
+) -> Result(Nil, ValidationError) {
+  // return early if option in None
+  use value <- utils.some_or(option, return: Ok(Nil))
+
   // recursively check list of validations
   case with_inner(list, value, Ok(Nil)) {
     Ok(Nil) -> Ok(Nil)

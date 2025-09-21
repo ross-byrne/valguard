@@ -1,3 +1,4 @@
+import gleam/option.{None, Some}
 import gleeunit
 import valguard.{type ValidationError, ValidationError}
 
@@ -141,6 +142,44 @@ pub fn with_executes_functions_lazily_and_returns_on_first_error_test() {
     fn(_v) { Error("second") },
   ]
   let actual = valguard.with("test", "value", validations)
+  let expected = Error(ValidationError(key: "test", value: "first"))
+  assert actual == expected
+}
+
+pub fn with_optional_returns_ok_when_passed_none_test() {
+  let validations = [fn(_v) { Error("should not get here") }]
+  let actual = valguard.with_optional("test", None, validations)
+  let expected = Ok(Nil)
+  assert actual == expected
+}
+
+pub fn with_optional_returns_ok_when_functions_return_ok_test() {
+  let validations = [
+    fn(_v) { Ok(Nil) },
+    fn(_v) { Ok(Nil) },
+  ]
+  let actual = valguard.with_optional("test", Some("value"), validations)
+  let expected = Ok(Nil)
+  assert actual == expected
+}
+
+pub fn with_optional_returns_validation_errors_when_functions_return_error_test() {
+  let validations = [
+    fn(_v) { Ok(Nil) },
+    fn(_v) { Error("e1") },
+  ]
+  let actual = valguard.with_optional("test", Some("value"), validations)
+  let expected = Error(ValidationError(key: "test", value: "e1"))
+  assert actual == expected
+}
+
+pub fn with_optional_executes_functions_lazily_and_returns_on_first_error_test() {
+  let validations = [
+    fn(_v) { Ok(Nil) },
+    fn(_v) { Error("first") },
+    fn(_v) { Error("second") },
+  ]
+  let actual = valguard.with_optional("test", Some("value"), validations)
   let expected = Error(ValidationError(key: "test", value: "first"))
   assert actual == expected
 }
