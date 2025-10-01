@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1
+
+- Fixed validation message for `date_is_valid` referencing time instead of date
+
 ## v0.4.0
 
 - Added `with_optional` function for handling validation of optional values.
