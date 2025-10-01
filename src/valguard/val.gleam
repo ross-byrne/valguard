@@ -114,6 +114,6 @@ pub fn email_is_valid(email: String) -> Result(Nil, String) {
 pub fn date_is_valid(datetime: String) -> Result(Nil, String) {
   case timestamp.parse_rfc3339(datetime) {
     Ok(_) -> Ok(Nil)
-    Error(_) -> Error("A valid time is required")
+    Error(_) -> Error("A valid date is required")
   }
 }

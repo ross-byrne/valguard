@@ -85,10 +85,11 @@ pub fn email_is_valid_test() {
 }
 
 pub fn date_is_valid_test() {
+  let message = "A valid date is required"
   assert Ok(Nil) == val.date_is_valid("1970-01-01T00:00:01Z")
   assert Ok(Nil) == val.date_is_valid("2022-01-01T13:40:00Z")
-  assert Error("A valid time is required") == val.date_is_valid("")
-  assert Error("A valid time is required") == val.date_is_valid("asdfasdf")
-  assert Error("A valid time is required") == val.date_is_valid("2010-03-03")
-  assert Error("A valid time is required") == val.date_is_valid("2010/03/03")
+  assert Error(message) == val.date_is_valid("")
+  assert Error(message) == val.date_is_valid("asdfasdf")
+  assert Error(message) == val.date_is_valid("2010-03-03")
+  assert Error(message) == val.date_is_valid("2010/03/03")
 }
