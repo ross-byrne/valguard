@@ -199,7 +199,7 @@ pub fn float_required(
   }
 }
 
-/// Validates an float is at least a minimum value. Returns an error if value is less than the minimum
+/// Validates a float is at least a minimum value. Returns an error if value is less than the minimum
 pub fn float_min(
   value: Float,
   min minimum: Float,
@@ -211,7 +211,7 @@ pub fn float_min(
   }
 }
 
-/// Validates an float is at most a maximum value. Returns an error if value is greater than the maximum
+/// Validates a float is at most a maximum value. Returns an error if value is greater than the maximum
 pub fn float_max(
   value: Float,
   max maximum: Float,
