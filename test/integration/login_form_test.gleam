@@ -2,8 +2,7 @@
 ////
 //// Shows how to wrap the validation errors in your own custom error type
 
-import valguard.{type ValidationError, ValidationError}
-import valguard/val
+import valguard.{type ValidationError, ValidationError} as v
 
 // ================== Test setup ===================
 
@@ -18,14 +17,16 @@ type Errors {
 /// Validates login params
 fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
   [
-    valguard.with("email", params.email, [
-      val.string_required,
-      val.email_is_valid,
+    v.with("email", params.email, [
+      v.string_required(_, "This field is required"),
+      v.email_is_valid(_, "Email address is not valid"),
     ]),
-    valguard.with("password", params.password, [val.string_required]),
+    v.with("password", params.password, [
+      v.string_required(_, "This field is required"),
+    ]),
   ]
-  |> valguard.collect_errors
-  |> valguard.prepare_with(ErrorValidatingParams)
+  |> v.collect_errors
+  |> v.prepare_with(ErrorValidatingParams)
 }
 
 // ================== Tests ===================

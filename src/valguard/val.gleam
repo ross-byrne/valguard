@@ -11,6 +11,7 @@ import gleam/time/timestamp
 const email_regex_pattern: String = "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
 /// Requires a int to be less than or greater than 0 to be considered required
+@deprecated("use valguard module instead")
 pub fn int_required(value: Int) -> Result(Nil, String) {
   case value != 0 {
     True -> Ok(Nil)
@@ -19,6 +20,7 @@ pub fn int_required(value: Int) -> Result(Nil, String) {
 }
 
 /// Validates an int is at least a minimum value. Returns an error if value is less than the minimum
+@deprecated("use valguard module instead")
 pub fn int_min(value: Int, min minimum: Int) -> Result(Nil, String) {
   case value < minimum {
     True -> Error("Value must be a minimum of " <> int.to_string(minimum))
@@ -27,6 +29,7 @@ pub fn int_min(value: Int, min minimum: Int) -> Result(Nil, String) {
 }
 
 /// Validates an int is at most a maximum value. Returns an error if value is greater than the maximum
+@deprecated("use valguard module instead")
 pub fn int_max(value: Int, max maximum: Int) -> Result(Nil, String) {
   case value > maximum {
     True -> Error("Value must be a maximum of " <> int.to_string(maximum))
@@ -35,6 +38,7 @@ pub fn int_max(value: Int, max maximum: Int) -> Result(Nil, String) {
 }
 
 /// Requires a float to be less than or greater than 0.0 to be considered required
+@deprecated("use valguard module instead")
 pub fn float_required(value: Float) -> Result(Nil, String) {
   case value >. 0.0 || value <. 0.0 {
     True -> Ok(Nil)
@@ -43,6 +47,7 @@ pub fn float_required(value: Float) -> Result(Nil, String) {
 }
 
 /// Validates an float is at least a minimum value. Returns an error if value is less than the minimum
+@deprecated("use valguard module instead")
 pub fn float_min(value: Float, min minimum: Float) -> Result(Nil, String) {
   case value <. minimum {
     True -> Error("Value must be a minimum of " <> float.to_string(minimum))
@@ -51,6 +56,7 @@ pub fn float_min(value: Float, min minimum: Float) -> Result(Nil, String) {
 }
 
 /// Validates an float is at most a maximum value. Returns an error if value is greater than the maximum
+@deprecated("use valguard module instead")
 pub fn float_max(value: Float, max maximum: Float) -> Result(Nil, String) {
   case value >. maximum {
     True -> Error("Value must be a maximum of " <> float.to_string(maximum))
@@ -59,6 +65,7 @@ pub fn float_max(value: Float, max maximum: Float) -> Result(Nil, String) {
 }
 
 /// Requires a string to not be empty to be considered required
+@deprecated("use valguard module instead")
 pub fn string_required(value: String) -> Result(Nil, String) {
   case string.is_empty(value) {
     False -> Ok(Nil)
@@ -67,6 +74,7 @@ pub fn string_required(value: String) -> Result(Nil, String) {
 }
 
 /// Validates a string is a minimum length
+@deprecated("use valguard module instead")
 pub fn string_min(value: String, min minimum: Int) -> Result(Nil, String) {
   case string.length(value) < minimum {
     True ->
@@ -78,6 +86,7 @@ pub fn string_min(value: String, min minimum: Int) -> Result(Nil, String) {
 }
 
 /// Validates a string is at most a maximum length
+@deprecated("use valguard module instead")
 pub fn string_max(value: String, max maximum: Int) -> Result(Nil, String) {
   case string.length(value) > maximum {
     True ->
@@ -88,14 +97,8 @@ pub fn string_max(value: String, max maximum: Int) -> Result(Nil, String) {
   }
 }
 
-// TODO: add more string validations
-// - starts_with
-// - ends_with
-// - includes
-// - length
-// - regex
-
 /// Validates if entered email is a valid email address
+@deprecated("use valguard module instead")
 pub fn email_is_valid(email: String) -> Result(Nil, String) {
   let error = "Email address is not valid"
 
@@ -111,6 +114,7 @@ pub fn email_is_valid(email: String) -> Result(Nil, String) {
 }
 
 /// Validates that a date is valid by checking it can be parsed correctly
+@deprecated("use valguard module instead")
 pub fn date_is_valid(datetime: String) -> Result(Nil, String) {
   case timestamp.parse_rfc3339(datetime) {
     Ok(_) -> Ok(Nil)

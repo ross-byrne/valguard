@@ -4,8 +4,7 @@
 //// and the use of custom validation functions, one of which takes a database connection
 
 import integration/shared/custom_functions as cf
-import valguard.{type ValidationError, ValidationError}
-import valguard/val
+import valguard.{type ValidationError, ValidationError} as v
 
 // ================== Test setup ===================
 
@@ -32,25 +31,30 @@ fn validate_params(
   db: Connection,
   params: RegisterParams,
 ) -> Result(Nil, Errors) {
+  let required_msg = "This field is required"
   [
-    valguard.with("first_name", params.first_name, [val.string_required]),
-    valguard.with("last_name", params.last_name, [val.string_required]),
-    valguard.with("email", params.email, [
-      val.string_required,
-      val.email_is_valid,
+    v.with("first_name", params.first_name, [
+      v.string_required(_, required_msg),
+    ]),
+    v.with("last_name", params.last_name, [
+      v.string_required(_, required_msg),
+    ]),
+    v.with("email", params.email, [
+      v.string_required(_, required_msg),
+      v.email_is_valid(_, "Email address is not valid"),
       cf.user_email_is_available(db, _),
     ]),
-    valguard.with("password", params.password, [
-      val.string_required,
+    v.with("password", params.password, [
+      v.string_required(_, required_msg),
       cf.password_requirements,
     ]),
-    valguard.list("confirm_password", [
-      fn() { val.string_required(params.confirm_password) },
+    v.list("confirm_password", [
+      fn() { v.string_required(params.confirm_password, required_msg) },
       fn() { cf.passwords_match(params.password, params.confirm_password) },
     ]),
   ]
-  |> valguard.collect_errors
-  |> valguard.prepare_with(ErrorValidatingParams)
+  |> v.collect_errors
+  |> v.prepare_with(ErrorValidatingParams)
 }
 
 // ================== Tests ===================

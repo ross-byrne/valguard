@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.0
+
+- Validation functions in `valguard/val` have been deprecated in favour of functions in `valguard`
+- Validation functions in `valguard` module now take both the value they are validating and an error message
+to return if the validation fails
+
 ## v0.4.1
 
 - Fixed validation message for `date_is_valid` referencing time instead of date
