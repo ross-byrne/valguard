@@ -1,6 +1,5 @@
 //// Experimental features
 
-import gleam/option.{type Option, None, Some}
 import gleam/result
 
 /// A general type of validation that is returned as a list
@@ -30,7 +29,7 @@ pub type Issue {
 /// Or, it will be a validation error and include a list of issues
 pub type ValidationType {
   Success
-  ValError(List(Issue))
+  ValError(key: String, issue: Issue)
 }
 
 /// A list of all types of validation errors that can occur
@@ -115,10 +114,8 @@ fn with_inner(
 /// testing a validation
 pub fn test_validation(
   value: String,
-  message: Option(String),
+  message: String,
 ) -> Result(Nil, ValidationError) {
-  let message = option.unwrap(message, "string does not match")
-
   case value == "true" {
     True -> Ok(Nil)
     False ->
@@ -158,8 +155,8 @@ pub fn testing() {
 
   let result =
     with("email", "t@test.com", [
-      test_validation(_, Some("Valid email required")),
-      test_validation(_, None),
+      test_validation(_, "Valid email required"),
+      test_validation(_, ""),
     ])
   echo result
 }
