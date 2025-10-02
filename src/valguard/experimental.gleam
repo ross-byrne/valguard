@@ -1,12 +1,12 @@
 //// Experimental features
 
-import gleam/bool
+import gleam/option.{type Option, None, Some}
 import gleam/result
 
 /// A general type of validation that is returned as a list
-pub type Validation {
-  Validation(key: String, success: Bool, message: String, error_code: String)
-}
+// pub type Validation {
+//   Validation(key: String, message: String, error_code: String)
+// }
 
 /// a single validation item that contains a list of issues
 ///
@@ -16,20 +16,20 @@ pub type Validation {
 // }
 
 pub type ValidationError {
-  ValidationError(key: String, message: String, error_code: String)
+  ValidationError(message: String, error_code: String)
 }
 
 /// not sure on naming
 pub type Issue {
-  Issue(key: String, message: String, error: Error)
+  Issue(key: String, message: String, error_code: String)
 }
 
 /// Another option, where returned validation is either success,
 /// which will include the validated params
 ///
 /// Or, it will be a validation error and include a list of issues
-pub type ValidationType(a) {
-  Success(a)
+pub type ValidationType {
+  Success
   ValError(List(Issue))
 }
 
@@ -88,56 +88,78 @@ pub fn error_code(error: VError) -> String {
 pub fn with(
   key: String,
   value,
-  list: List(fn(value) -> Validation),
-) -> Result(Nil, ValidationError) {
+  list: List(fn(value) -> Result(Nil, ValidationError)),
+) -> Result(Nil, Issue) {
   // recursively check list of validations
   case with_inner(list, value, Ok(Nil)) {
     Ok(Nil) -> Ok(Nil)
-    Error(message) ->
-      Error(ValidationError(
-        key:,
-        message:,
-        error_code: error_code(StringRequired),
-      ))
+    Error(ValidationError(message:, error_code:)) ->
+      Error(Issue(key:, message:, error_code:))
   }
 }
 
 /// Inner recursive loop for with
-// fn with_inner(
-//   list: List(fn(value) -> Result(Nil, String)),
-//   value,
-//   prev: Result(Nil, String),
-// ) -> Result(Nil, String) {
-//   // return early if previous value was error
-//   use _ <- result.try(prev)
-//   case list {
-//     [] -> prev
-//     [next, ..rest] -> with_inner(rest, value, next(value))
-//   }
-// }
-
-/// Inner recursive loop for with
 fn with_inner(
-  list: List(fn(value) -> Validation),
+  list: List(fn(value) -> Result(Nil, ValidationError)),
   value,
-  prev: Validation,
-) -> Validation {
+  prev: Result(Nil, ValidationError),
+) -> Result(Nil, ValidationError) {
   // return early if previous value was error
-  use <- bool.guard(when: !prev.success, return: prev)
-
+  use _ <- result.try(prev)
   case list {
     [] -> prev
     [next, ..rest] -> with_inner(rest, value, next(value))
   }
 }
 
+/// testing a validation
+pub fn test_validation(
+  value: String,
+  message: Option(String),
+) -> Result(Nil, ValidationError) {
+  let message = option.unwrap(message, "string does not match")
+
+  case value == "true" {
+    True -> Ok(Nil)
+    False ->
+      Error(ValidationError(message:, error_code: error_code(StringNotEqual)))
+  }
+}
+
+// pub fn with(
+//   key: String,
+//   value,
+//   list: List(fn(value) -> Validation),
+// ) -> ValidationType {
+//   // recursively check list of validations
+//   case with_inner(list, value, Success) {
+//     Success -> Success
+//     ValError -> ValError
+//   }
+// }
+
+/// Inner recursive loop for with
+// fn with_inner(
+//   list: List(fn(value) -> ValidationType),
+//   value,
+//   prev: ValidationType,
+// ) -> ValidationType {
+//   // return early if previous value was error
+//   use <- bool.guard(when: prev != Success, return: prev)
+
+//   case list {
+//     [] -> prev
+//     [next, ..rest] -> with_inner(rest, value, next(value))
+//   }
+// }
+
 pub fn testing() {
   echo "Testing types and shapes"
 
-  let result = with("email", "t@test.com", [])
+  let result =
+    with("email", "t@test.com", [
+      test_validation(_, Some("Valid email required")),
+      test_validation(_, None),
+    ])
   echo result
-}
-
-fn check_email(value: String) -> Validation {
-  todo
 }
