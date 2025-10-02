@@ -15,14 +15,16 @@ pub fn user_email_is_available(_db, email: String) -> Result(Nil, String) {
 /// Validates password requirements
 pub fn password_requirements(password: String) -> Result(Nil, String) {
   // enforce minimum password length of 8 characters and max of 64
-  use _ <- result.try(
-    val.string_min(password, min: 8)
-    |> result.replace_error("Password must be a minimum of 8 characters"),
-  )
-  use _ <- result.try(
-    val.string_max(password, max: 64)
-    |> result.replace_error("Password must be a maximum of 64 characters"),
-  )
+  use _ <- result.try(val.string_min(
+    password,
+    min: 8,
+    message: "Password must be a minimum of 8 characters",
+  ))
+  use _ <- result.try(val.string_max(
+    password,
+    max: 64,
+    message: "Password must be a maximum of 64 characters",
+  ))
 
   Ok(Nil)
 }

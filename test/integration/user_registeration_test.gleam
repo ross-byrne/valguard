@@ -32,20 +32,25 @@ fn validate_params(
   db: Connection,
   params: RegisterParams,
 ) -> Result(Nil, Errors) {
+  let required_msg = "This field is required"
   [
-    valguard.with("first_name", params.first_name, [val.string_required]),
-    valguard.with("last_name", params.last_name, [val.string_required]),
+    valguard.with("first_name", params.first_name, [
+      val.string_required(_, required_msg),
+    ]),
+    valguard.with("last_name", params.last_name, [
+      val.string_required(_, required_msg),
+    ]),
     valguard.with("email", params.email, [
-      val.string_required,
-      val.email_is_valid,
+      val.string_required(_, required_msg),
+      val.email_is_valid(_, "Email address is not valid"),
       cf.user_email_is_available(db, _),
     ]),
     valguard.with("password", params.password, [
-      val.string_required,
+      val.string_required(_, required_msg),
       cf.password_requirements,
     ]),
     valguard.list("confirm_password", [
-      fn() { val.string_required(params.confirm_password) },
+      fn() { val.string_required(params.confirm_password, required_msg) },
       fn() { cf.passwords_match(params.password, params.confirm_password) },
     ]),
   ]
