@@ -1,7 +1,7 @@
 //// Custom validation functions to use in integration tests
 
 import gleam/result
-import valguard/val
+import valguard as v
 
 /// Custom validation function that takes a database connection
 pub fn user_email_is_available(_db, email: String) -> Result(Nil, String) {
@@ -15,12 +15,12 @@ pub fn user_email_is_available(_db, email: String) -> Result(Nil, String) {
 /// Validates password requirements
 pub fn password_requirements(password: String) -> Result(Nil, String) {
   // enforce minimum password length of 8 characters and max of 64
-  use _ <- result.try(val.string_min(
+  use _ <- result.try(v.string_min(
     password,
     min: 8,
     message: "Password must be a minimum of 8 characters",
   ))
-  use _ <- result.try(val.string_max(
+  use _ <- result.try(v.string_max(
     password,
     max: 64,
     message: "Password must be a maximum of 64 characters",

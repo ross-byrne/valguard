@@ -1,21 +1,20 @@
 //// Integration test to show how custom validation functions can be used
 
 import integration/shared/custom_functions as cf
-import valguard.{ValidationError}
+import valguard.{ValidationError} as v
 
 type Connection {
   Connection
 }
 
 pub fn custom_validation_function_passes_test() {
-  let actual =
-    valguard.with("password", "my-password", [cf.password_requirements])
+  let actual = v.with("password", "my-password", [cf.password_requirements])
   let expected = Ok(Nil)
   assert actual == expected
 }
 
 pub fn custom_validation_function_fails_test() {
-  let actual = valguard.with("password", "asdf", [cf.password_requirements])
+  let actual = v.with("password", "asdf", [cf.password_requirements])
   let expected =
     Error(ValidationError(
       key: "password",
@@ -26,7 +25,7 @@ pub fn custom_validation_function_fails_test() {
 
 pub fn custom_multi_param_validation_function_passes_test() {
   let actual =
-    valguard.list("confirm_password", [
+    v.list("confirm_password", [
       fn() { cf.passwords_match("password", "password") },
     ])
   let expected = Ok(Nil)
@@ -35,7 +34,7 @@ pub fn custom_multi_param_validation_function_passes_test() {
 
 pub fn custom_multi_param_validation_function_fails_test() {
   let actual =
-    valguard.list("confirm_password", [
+    v.list("confirm_password", [
       fn() { cf.passwords_match("password", "wrong-password") },
     ])
   let expected =
@@ -49,7 +48,7 @@ pub fn custom_multi_param_validation_function_fails_test() {
 pub fn custom_validation_function_with_database_connection_passes_test() {
   let db = Connection
   let actual =
-    valguard.with("email", "example@test.com", [
+    v.with("email", "example@test.com", [
       cf.user_email_is_available(db, _),
     ])
   let expected = Ok(Nil)
@@ -60,7 +59,7 @@ pub fn custom_validation_function_with_database_connection_passes_test() {
 pub fn custom_validation_function_with_database_connection_fails_test() {
   let db = Connection
   let actual =
-    valguard.with("email", "email@taken.com", [
+    v.with("email", "email@taken.com", [
       cf.user_email_is_available(db, _),
     ])
   let expected =
