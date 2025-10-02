@@ -18,7 +18,7 @@ pub type Issue {
 }
 
 /// A list of all types of validation errors that can occur
-type VError {
+type ErrorType {
   StringRequired
   StringTooShort
   StringTooLong
@@ -40,8 +40,8 @@ type VError {
 }
 
 /// convert error to error code
-fn error_code(error: VError) -> String {
-  case error {
+fn error_code(error_type: ErrorType) -> String {
+  case error_type {
     StringRequired -> "string_required"
     StringNotEqual -> "string_not_equal"
     StringTooLong -> "string_too_long"
