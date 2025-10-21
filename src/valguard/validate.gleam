@@ -110,12 +110,74 @@ pub fn string_max(
   }
 }
 
-// TODO: add more string validations
-// - starts_with
-// - ends_with
-// - includes
-// - length
-// - regex
+/// Validates a string is a defined length
+pub fn string_length(
+  value: String,
+  len len: Int,
+  message message: String,
+) -> Result(Nil, String) {
+  case string.length(value) == len {
+    True -> Ok(Nil)
+    False -> Error(message)
+  }
+}
+
+/// Validates a string starts with a value
+pub fn string_starts_with(
+  value: String,
+  with with: String,
+  message message: String,
+) -> Result(Nil, String) {
+  case string.starts_with(value, with) {
+    True -> Ok(Nil)
+    False -> Error(message)
+  }
+}
+
+/// Validates a string ends with a value
+pub fn string_ends_with(
+  value: String,
+  with with: String,
+  message message: String,
+) -> Result(Nil, String) {
+  case string.ends_with(value, with) {
+    True -> Ok(Nil)
+    False -> Error(message)
+  }
+}
+
+/// Validates a string contains a value
+pub fn string_contains(
+  value: String,
+  contains contains: String,
+  message message: String,
+) -> Result(Nil, String) {
+  case string.contains(value, contains) {
+    True -> Ok(Nil)
+    False -> Error(message)
+  }
+}
+
+/// Validates a string value against a provided regular expression.
+///
+/// Errors related to regular expression are returned first, if for example
+/// an incomplete or incorrect regular expression is passed to the function.
+pub fn string_regex(
+  value: String,
+  regex regex: String,
+  message message: String,
+) -> Result(Nil, String) {
+  // returns error message as regex compile error
+  use re <- result.try(
+    regexp.from_string(regex)
+    |> result.map_error(fn(e) { e.error }),
+  )
+
+  case regexp.check(re, value) {
+    True -> Ok(Nil)
+    False -> Error(message)
+  }
+}
 
 /// Validates if entered email is a valid email address
 pub fn email_is_valid(
