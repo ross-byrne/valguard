@@ -70,6 +70,40 @@ pub fn string_max_test() {
   assert Error(message) == v.string_max("qwertyuiop[", max: 10, message:)
 }
 
+pub fn string_length_test() {
+  let message = "Value is wrong size"
+  assert Ok(Nil) == v.string_length("hello", len: 5, message:)
+  assert Error(message) == v.string_length("hello1", len: 5, message:)
+  assert Error(message) == v.string_length("hell", len: 5, message:)
+}
+
+pub fn string_starts_with_test() {
+  let value = "Hello world"
+  let message = "Value is invalid"
+  assert Ok(Nil) == v.string_starts_with(value, with: "Hello", message:)
+  assert Ok(Nil) == v.string_starts_with(value, with: "Hello world", message:)
+  assert Error(message) == v.string_starts_with(value, with: "jim", message:)
+  assert Error(message) == v.string_starts_with(value, with: "hello", message:)
+}
+
+pub fn string_ends_with_test() {
+  let value = "Hello world"
+  let message = "Value is invalid"
+  assert Ok(Nil) == v.string_ends_with(value, with: "world", message:)
+  assert Ok(Nil) == v.string_ends_with(value, with: "Hello world", message:)
+  assert Error(message) == v.string_ends_with(value, with: "jim", message:)
+  assert Error(message) == v.string_ends_with(value, with: "World", message:)
+}
+
+pub fn string_contains_test() {
+  let value = "Hello world"
+  let message = "Value is invalid"
+  assert Ok(Nil) == v.string_contains(value, contains: "lo wor", message:)
+  assert Ok(Nil) == v.string_contains(value, contains: "Hello world", message:)
+  assert Error(message) == v.string_contains(value, contains: "jim", message:)
+  assert Error(message) == v.string_contains(value, contains: "World", message:)
+}
+
 pub fn email_is_valid_test() {
   let message = "Email address is not valid"
   assert Ok(Nil) == v.email_is_valid("tesat@test", message:)
