@@ -4,6 +4,7 @@
 
 - Removed `valguard/val` module
 - Moved validation functions from `valguard` to `valguard/validate`
+- Added new string validation functions
 
 ## v0.5.0
 
