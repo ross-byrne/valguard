@@ -11,7 +11,8 @@ Better documentation and examples Coming Soon™.
 An example of validating a login form:
 
 ```gleam
-import valguard.{type ValidationError} as v
+import valguard.{type ValidationError}
+import valguard/validate as v
 
 /// Your custom validation error type that wraps valguard error type
 pub type Errors {
@@ -32,17 +33,17 @@ type LoginParams {
 /// is the validation error message.
 fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
   [
-    v.with("email", params.email, [
+    valguard.with("email", params.email, [
       v.string_required(_, "This field is required"),
       v.email_is_valid(_, "Email address is not valid"),
     ]
     ),
-    v.with("password", params.password, [
+    valguard.with("password", params.password, [
       v.string_required(_, "This field is required"),
     ]),
   ]
-  |> v.collect_errors
-  |> v.prepare_with(ErrorValidatingParams)
+  |> valguard.collect_errors
+  |> valguard.prepare_with(ErrorValidatingParams)
 }
 ```
 

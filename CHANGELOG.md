@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Removed `valguard/val` module
+- Moved validation functions from `valguard` to `valguard/validate`
+
 ## v0.5.0
 
 - Validation functions in `valguard/val` have been deprecated in favour of functions in `valguard`
