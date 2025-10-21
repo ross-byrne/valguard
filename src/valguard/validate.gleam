@@ -158,27 +158,6 @@ pub fn string_contains(
   }
 }
 
-/// Validates a string value against a provided regular expression.
-///
-/// Errors related to regular expression are returned first, if for example
-/// an incomplete or incorrect regular expression is passed to the function.
-pub fn string_regex(
-  value: String,
-  regex regex: String,
-  message message: String,
-) -> Result(Nil, String) {
-  // returns error message as regex compile error
-  use re <- result.try(
-    regexp.from_string(regex)
-    |> result.map_error(fn(e) { e.error }),
-  )
-
-  case regexp.check(re, value) {
-    True -> Ok(Nil)
-    False -> Error(message)
-  }
-}
-
 /// Validates if entered email is a valid email address
 pub fn email_is_valid(
   email: String,
