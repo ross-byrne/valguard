@@ -1,7 +1,7 @@
 //// Custom validation functions to use in integration tests
 
 import gleam/result
-import valguard as v
+import valguard/validate as v
 
 /// Custom validation function that takes a database connection
 pub fn user_email_is_available(_db, email: String) -> Result(Nil, String) {
