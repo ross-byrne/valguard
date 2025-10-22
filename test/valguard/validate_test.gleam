@@ -1,4 +1,6 @@
+import gleam/bit_array
 import valguard/validate as v
+import youid/uuid
 
 pub fn int_require_test() {
   let message = "This field is required"
@@ -102,6 +104,62 @@ pub fn string_contains_test() {
   assert Ok(Nil) == v.string_contains(value, contains: "Hello world", message:)
   assert Error(message) == v.string_contains(value, contains: "jim", message:)
   assert Error(message) == v.string_contains(value, contains: "World", message:)
+}
+
+// Test UUIDs generated with: https://www.uuidtools.com/
+pub fn uuid_v1_test() {
+  let message = "oops"
+  assert Error(message) == v.uuid_v1("", message:)
+  assert Error(message) == v.uuid_v1("random text", message:)
+  assert Ok(Nil) == v.uuid_v1("036da8b0-af53-11f0-aa49-cdc0883c5947", message:)
+
+  let gen_test = uuid.v1() |> uuid.to_string
+  assert Ok(Nil) == v.uuid_v1(gen_test, message:)
+}
+
+pub fn uuid_v2_test() {
+  let message = "oops"
+  assert Error(message) == v.uuid_v2("", message:)
+  assert Error(message) == v.uuid_v2("random text", message:)
+  assert Ok(Nil) == v.uuid_v2("000003e8-af53-21f0-a200-325096b39f47", message:)
+}
+
+pub fn uuid_v3_test() {
+  let message = "oops"
+  assert Error(message) == v.uuid_v3("", message:)
+  assert Error(message) == v.uuid_v3("random text", message:)
+  assert Ok(Nil) == v.uuid_v3("4f09f87f-8fb0-39ae-ab3f-5d2c9b6c00fb", message:)
+}
+
+pub fn uuid_v4_test() {
+  let message = "oops"
+  assert Error(message) == v.uuid_v4("", message:)
+  assert Error(message) == v.uuid_v4("random text", message:)
+  assert Ok(Nil) == v.uuid_v4("15178939-5105-4acd-b880-9061da76ac68", message:)
+
+  let gen_test = uuid.v4() |> uuid.to_string
+  assert Ok(Nil) == v.uuid_v4(gen_test, message:)
+}
+
+pub fn uuid_v5_test() {
+  let message = "oops"
+  assert Error(message) == v.uuid_v5("", message:)
+  assert Error(message) == v.uuid_v5("random text", message:)
+  assert Ok(Nil) == v.uuid_v5("91bfb751-9178-5512-80d3-caff6becc78e", message:)
+
+  let assert Ok(uuid) = uuid.v5(uuid.x500_uuid(), bit_array.from_string("test"))
+  let gen_test = uuid.to_string(uuid)
+  assert Ok(Nil) == v.uuid_v5(gen_test, message:)
+}
+
+pub fn uuid_v7_test() {
+  let message = "oops"
+  assert Error(message) == v.uuid_v7("", message:)
+  assert Error(message) == v.uuid_v7("random text", message:)
+  assert Ok(Nil) == v.uuid_v7("019a0c55-5214-71cf-b481-dcaeb42eeb79", message:)
+
+  let gen_test = uuid.v7() |> uuid.to_string
+  assert Ok(Nil) == v.uuid_v7(gen_test, message:)
 }
 
 pub fn email_is_valid_test() {
