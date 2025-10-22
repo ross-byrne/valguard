@@ -1,4 +1,5 @@
-//// Code taken from package `youid`. See: https://github.com/lpil/youid/blob/b623162b8eea145c47c15bac55afe7e482f01b48/src/youid/uuid.gleam#L1
+//// Code taken from package `youid`, to avoid adding additional dependencies.
+//// See: https://github.com/lpil/youid/blob/b623162b8eea145c47c15bac55afe7e482f01b48/src/youid/uuid.gleam
 
 import gleam/string
 
@@ -15,7 +16,7 @@ pub type Version {
 
 /// Checks if a string is a specific uuid version
 pub fn check_uuid_version(uuid: String, ver: Version) -> Bool {
-  case string_is_uuid(uuid) {
+  case from_string(uuid) {
     Error(_) -> False
     Ok(bits) ->
       case version(bits) {
@@ -30,7 +31,7 @@ pub fn check_uuid_version(uuid: String, ver: Version) -> Bool {
 /// hex with or without dashes prepended with "urn:uuid:"
 ///
 /// See: https://github.com/lpil/youid/blob/b623162b8eea145c47c15bac55afe7e482f01b48/src/youid/uuid.gleam#L463
-fn string_is_uuid(in: String) -> Result(BitArray, Nil) {
+fn from_string(in: String) -> Result(BitArray, Nil) {
   let hex = case in {
     "urn:uuid:" <> in -> in
     _ -> in
