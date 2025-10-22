@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added validation functions for UUID v1, v2, v3, v4, v5, and v7
+
 ## v0.6.0
 
 - **Breaking:** Removed `valguard/val` module
