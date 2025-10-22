@@ -2,7 +2,8 @@ import gleam/regexp
 import gleam/result
 import gleam/string
 import gleam/time/timestamp
-import valguard/internal/uuid_helper
+import valguard/internal/utils
+import youid/uuid
 
 /// Regex for validating emails. Used by HTML5 email input type
 ///
@@ -161,7 +162,7 @@ pub fn string_contains(
 
 /// Validates a string is a valid UUID V1
 pub fn uuid_v1(value: String, message message: String) -> Result(Nil, String) {
-  case uuid_helper.check_uuid_version(value, uuid_helper.V1) {
+  case utils.check_uuid_version(value, uuid.V1) {
     True -> Ok(Nil)
     False -> Error(message)
   }
@@ -169,7 +170,7 @@ pub fn uuid_v1(value: String, message message: String) -> Result(Nil, String) {
 
 /// Validates a string is a valid UUID V2
 pub fn uuid_v2(value: String, message message: String) -> Result(Nil, String) {
-  case uuid_helper.check_uuid_version(value, uuid_helper.V2) {
+  case utils.check_uuid_version(value, uuid.V2) {
     True -> Ok(Nil)
     False -> Error(message)
   }
@@ -177,7 +178,7 @@ pub fn uuid_v2(value: String, message message: String) -> Result(Nil, String) {
 
 /// Validates a string is a valid UUID V3
 pub fn uuid_v3(value: String, message message: String) -> Result(Nil, String) {
-  case uuid_helper.check_uuid_version(value, uuid_helper.V3) {
+  case utils.check_uuid_version(value, uuid.V3) {
     True -> Ok(Nil)
     False -> Error(message)
   }
@@ -185,7 +186,7 @@ pub fn uuid_v3(value: String, message message: String) -> Result(Nil, String) {
 
 /// Validates a string is a valid UUID V4
 pub fn uuid_v4(value: String, message message: String) -> Result(Nil, String) {
-  case uuid_helper.check_uuid_version(value, uuid_helper.V4) {
+  case utils.check_uuid_version(value, uuid.V4) {
     True -> Ok(Nil)
     False -> Error(message)
   }
@@ -193,7 +194,7 @@ pub fn uuid_v4(value: String, message message: String) -> Result(Nil, String) {
 
 /// Validates a string is a valid UUID V5
 pub fn uuid_v5(value: String, message message: String) -> Result(Nil, String) {
-  case uuid_helper.check_uuid_version(value, uuid_helper.V5) {
+  case utils.check_uuid_version(value, uuid.V5) {
     True -> Ok(Nil)
     False -> Error(message)
   }
@@ -201,7 +202,7 @@ pub fn uuid_v5(value: String, message message: String) -> Result(Nil, String) {
 
 /// Validates a string is a valid UUID V7
 pub fn uuid_v7(value: String, message message: String) -> Result(Nil, String) {
-  case uuid_helper.check_uuid_version(value, uuid_helper.V7) {
+  case utils.check_uuid_version(value, uuid.V7) {
     True -> Ok(Nil)
     False -> Error(message)
   }
