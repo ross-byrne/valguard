@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.1
+
+- Updated dependencies
+
 ## v0.7.0
 
 - Added validation functions for UUID v1, v2, v3, v4, v5, and v7
