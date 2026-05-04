@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added experimental `valguard/experimental` module: a parse + validate pipeline
+  built on `gleam/dynamic/decode` that takes raw `Dynamic` input and returns
+  the typed record or every accumulated error in one list. Provides
+  `parse`, `field_with`, `optional_field_with`, `check`, and `success_with`.
+  Existing API is unchanged.
 - Updated dependencies
 
 ## v0.7.1
