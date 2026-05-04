@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Updated dependencies
+
 ## v0.7.1
 
 - Updated dependencies
