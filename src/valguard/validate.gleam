@@ -11,7 +11,10 @@ import youid/uuid
 const email_regex_pattern: String = "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
 /// Requires a int to be less than or greater than 0 to be considered required
-pub fn int_required(value: Int, message message: String) -> Result(Nil, String) {
+pub fn int_required(
+  value: Int,
+  message message: String,
+) -> Result(Nil, String) {
   case value != 0 {
     True -> Ok(Nil)
     False -> Error(message)

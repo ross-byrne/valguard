@@ -30,7 +30,10 @@ pub fn password_requirements(password: String) -> Result(Nil, String) {
 }
 
 /// Validates that password and confirm password match
-pub fn passwords_match(password: String, confirm: String) -> Result(Nil, String) {
+pub fn passwords_match(
+  password: String,
+  confirm: String,
+) -> Result(Nil, String) {
   case password == confirm {
     True -> Ok(Nil)
     False -> Error("Password & Confirm Password must match")
