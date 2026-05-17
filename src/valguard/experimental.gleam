@@ -38,10 +38,10 @@ pub type Schema(t) =
 pub type Predicate(t) =
   fn(t) -> Result(Nil, String)
 
-/// A cross-field validation. Receives the fully-constructed typed value and
+/// A post-parse validation. Receives the fully-constructed typed value and
 /// returns either `Ok(Nil)` or `Error(ValidationError)` keyed to whichever
-/// field the error belongs to. Built via `cross`.
-pub type CrossField(t) =
+/// field the error belongs to. Built via `validate`.
+pub type Validation(t) =
   fn(t) -> Result(Nil, ValidationError)
 
 // ================== Entry points ===================
@@ -54,10 +54,10 @@ pub type CrossField(t) =
 pub fn parse(
   schema schema: Schema(t),
   data data: decode.Dynamic,
-  cross_field cross_field: List(CrossField(t)),
+  validations validations: List(Validation(t)),
 ) -> Result(t, List(ValidationError)) {
   case decode.run(data, schema) {
-    Ok(value) -> apply_cross_field(value, cross_field)
+    Ok(value) -> apply_validations(value, validations)
     Error(errors) -> Error(list.map(errors, decode_error_to_validation_error))
   }
 }
@@ -68,22 +68,22 @@ pub fn parse(
 pub fn parse_form(
   schema schema: Schema(t),
   values values: List(#(String, String)),
-  cross_field cross_field: List(CrossField(t)),
+  validations validations: List(Validation(t)),
 ) -> Result(t, List(ValidationError)) {
   let entries =
     list.map(values, fn(pair) {
       let #(key, value) = pair
       #(dynamic.string(key), dynamic.string(value))
     })
-  parse(schema, dynamic.properties(entries), cross_field)
+  parse(schema, dynamic.properties(entries), validations)
 }
 
-/// Build a cross-field validator that emits a `ValidationError` keyed to
+/// Build a post-parse validator that emits a `ValidationError` keyed to
 /// `field_name` when `check` returns `Error(message)`.
-pub fn cross(
+pub fn validate(
   field_name field_name: String,
   check check: fn(t) -> Result(Nil, String),
-) -> CrossField(t) {
+) -> Validation(t) {
   fn(value) {
     case check(value) {
       Ok(Nil) -> Ok(Nil)
@@ -342,14 +342,14 @@ pub fn check(
   })
 }
 
-// ================== Internals: cross-field application ===================
+// ================== Internals: post-parse validation ===================
 
-fn apply_cross_field(
+fn apply_validations(
   value: t,
-  cross_field: List(CrossField(t)),
+  validations: List(Validation(t)),
 ) -> Result(t, List(ValidationError)) {
   let errors =
-    list.filter_map(cross_field, fn(check) {
+    list.filter_map(validations, fn(check) {
       case check(value) {
         Ok(Nil) -> Error(Nil)
         Error(ve) -> Ok(ve)

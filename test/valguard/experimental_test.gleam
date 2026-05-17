@@ -233,6 +233,43 @@ pub fn float_field_emits_required_on_bad_input_test() {
   assert ve.parse(schema, data, []) == expected
 }
 
+pub fn float_field_parses_json_native_float_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("price"), dynamic.float(3.14))])
+  let schema = {
+    use price <- ve.float_field("price", "Required", [])
+    ve.success(price)
+  }
+
+  assert ve.parse(schema, data, []) == Ok(3.14)
+}
+
+pub fn float_field_emits_required_when_missing_test() {
+  let data = dynamic.properties([])
+  let schema = {
+    use price <- ve.float_field("price", "Required", [])
+    ve.success(price)
+  }
+
+  let expected = Error([ValidationError(key: "price", value: "Required")])
+  assert ve.parse(schema, data, []) == expected
+}
+
+pub fn float_field_runs_predicates_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("price"), dynamic.string("0.5"))])
+  let schema = {
+    use price <- ve.float_field("price", "Required", [
+      ev.float_min(1.0, "Must be at least 1.0"),
+    ])
+    ve.success(price)
+  }
+
+  let expected =
+    Error([ValidationError(key: "price", value: "Must be at least 1.0")])
+  assert ve.parse(schema, data, []) == expected
+}
+
 // ================== bool_field ===================
 
 pub fn bool_field_accepts_string_true_test() {
@@ -400,7 +437,54 @@ pub fn optional_int_field_emits_type_error_for_non_empty_garbage_test() {
   assert ve.parse(schema, data, []) == expected
 }
 
-// ================== optional_float_field & optional_bool_field ===================
+// ================== optional_float_field ===================
+
+pub fn optional_float_field_returns_none_when_missing_test() {
+  let data = dynamic.properties([])
+  let schema = {
+    use price <- ve.optional_float_field("price", [])
+    ve.success(price)
+  }
+
+  assert ve.parse(schema, data, []) == Ok(None)
+}
+
+pub fn optional_float_field_returns_none_on_empty_string_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("price"), dynamic.string(""))])
+  let schema = {
+    use price <- ve.optional_float_field("price", [])
+    ve.success(price)
+  }
+
+  assert ve.parse(schema, data, []) == Ok(None)
+}
+
+pub fn optional_float_field_returns_some_for_valid_float_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("price"), dynamic.string("3.14"))])
+  let schema = {
+    use price <- ve.optional_float_field("price", [])
+    ve.success(price)
+  }
+
+  assert ve.parse(schema, data, []) == Ok(Some(3.14))
+}
+
+pub fn optional_float_field_runs_predicates_on_some_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("price"), dynamic.string("0.5"))])
+  let schema = {
+    use price <- ve.optional_float_field("price", [
+      ev.float_min(1.0, "Must be at least 1.0"),
+    ])
+    ve.success(price)
+  }
+
+  let expected =
+    Error([ValidationError(key: "price", value: "Must be at least 1.0")])
+  assert ve.parse(schema, data, []) == expected
+}
 
 pub fn optional_float_field_type_error_test() {
   let data =
@@ -412,6 +496,44 @@ pub fn optional_float_field_type_error_test() {
 
   let expected =
     Error([ValidationError(key: "price", value: "Must be a valid number")])
+  assert ve.parse(schema, data, []) == expected
+}
+
+// ================== optional_bool_field ===================
+
+pub fn optional_bool_field_returns_none_when_missing_test() {
+  let data = dynamic.properties([])
+  let schema = {
+    use agreed <- ve.optional_bool_field("agreed", [])
+    ve.success(agreed)
+  }
+
+  assert ve.parse(schema, data, []) == Ok(None)
+}
+
+pub fn optional_bool_field_returns_none_on_empty_string_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("agreed"), dynamic.string(""))])
+  let schema = {
+    use agreed <- ve.optional_bool_field("agreed", [])
+    ve.success(agreed)
+  }
+
+  assert ve.parse(schema, data, []) == Ok(None)
+}
+
+pub fn optional_bool_field_runs_predicates_on_some_test() {
+  let data =
+    dynamic.properties([#(dynamic.string("agreed"), dynamic.string("false"))])
+  let schema = {
+    use agreed <- ve.optional_bool_field("agreed", [
+      ev.bool_true("You must agree"),
+    ])
+    ve.success(agreed)
+  }
+
+  let expected =
+    Error([ValidationError(key: "agreed", value: "You must agree")])
   assert ve.parse(schema, data, []) == expected
 }
 
@@ -563,9 +685,9 @@ pub fn parse_form_supports_int_field_test() {
   assert ve.parse_form(schema, values, []) == Ok(42)
 }
 
-// ================== Cross-field via parse / parse_form ===================
+// ================== ve.validate ===================
 
-pub fn cross_field_runs_when_per_field_passes_test() {
+pub fn validate_runs_when_per_field_passes_test() {
   let values = [#("password", "secret123"), #("confirm", "different")]
   let schema = {
     use password <- ve.string_field("password", "Required", [])
@@ -575,7 +697,7 @@ pub fn cross_field_runs_when_per_field_passes_test() {
 
   let actual =
     ve.parse_form(schema, values, [
-      ve.cross("confirm", fn(pair: #(String, String)) {
+      ve.validate("confirm", fn(pair: #(String, String)) {
         let #(pw, conf) = pair
         case pw == conf {
           True -> Ok(Nil)
@@ -589,7 +711,7 @@ pub fn cross_field_runs_when_per_field_passes_test() {
   assert actual == expected
 }
 
-pub fn cross_field_skipped_when_per_field_fails_test() {
+pub fn validate_skipped_when_per_field_fails_test() {
   // Per-field error on "password" (empty); cross-field never runs because
   // phase 1 didn't succeed. The output contains only the per-field error,
   // not a misleading cross-field result against placeholder values.
@@ -602,7 +724,7 @@ pub fn cross_field_skipped_when_per_field_fails_test() {
 
   let actual =
     ve.parse_form(schema, values, [
-      ve.cross("confirm", fn(pair: #(String, String)) {
+      ve.validate("confirm", fn(pair: #(String, String)) {
         let #(pw, conf) = pair
         case pw == conf {
           True -> Ok(Nil)
@@ -616,7 +738,7 @@ pub fn cross_field_skipped_when_per_field_fails_test() {
   assert actual == expected
 }
 
-pub fn cross_field_passes_when_check_succeeds_test() {
+pub fn validate_passes_when_check_succeeds_test() {
   let values = [#("password", "same"), #("confirm", "same")]
   let schema = {
     use password <- ve.string_field("password", "Required", [])
@@ -626,7 +748,7 @@ pub fn cross_field_passes_when_check_succeeds_test() {
 
   let actual =
     ve.parse_form(schema, values, [
-      ve.cross("confirm", fn(pair: #(String, String)) {
+      ve.validate("confirm", fn(pair: #(String, String)) {
         let #(pw, conf) = pair
         case pw == conf {
           True -> Ok(Nil)
@@ -638,7 +760,7 @@ pub fn cross_field_passes_when_check_succeeds_test() {
   assert actual == Ok(#("same", "same"))
 }
 
-pub fn cross_field_accumulates_multiple_checks_test() {
+pub fn validate_accumulates_multiple_checks_test() {
   let values = [#("a", "1"), #("b", "2")]
   let schema = {
     use a <- ve.string_field("a", "Required", [])
@@ -648,8 +770,8 @@ pub fn cross_field_accumulates_multiple_checks_test() {
 
   let actual =
     ve.parse_form(schema, values, [
-      ve.cross("a", fn(_) { Error("first cross error") }),
-      ve.cross("b", fn(_) { Error("second cross error") }),
+      ve.validate("a", fn(_) { Error("first cross error") }),
+      ve.validate("b", fn(_) { Error("second cross error") }),
     ])
 
   let expected =

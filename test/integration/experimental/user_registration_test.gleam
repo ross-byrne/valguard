@@ -35,7 +35,14 @@ fn register_schema() -> ve.Schema(RegisterParams) {
   use password <- ve.string_field("password", required, [
     ev.string_min(8, "Password must be a minimum of 8 characters"),
   ])
-  use confirm_password <- ve.string_field("confirm_password", required, [])
+  use confirm_password <- ve.string_field("confirm_password", required, [
+    fn(value: String) -> Result(Nil, String) {
+      case value == password {
+        True -> Ok(Nil)
+        False -> Error("Password & Confirm Password must match")
+      }
+    },
+  ])
   ve.success(RegisterParams(
     first_name,
     last_name,
@@ -45,18 +52,8 @@ fn register_schema() -> ve.Schema(RegisterParams) {
   ))
 }
 
-/// Cross-field check: password and confirm_password must match.
-fn passwords_must_match(p: RegisterParams) -> Result(Nil, String) {
-  case p.password == p.confirm_password {
-    True -> Ok(Nil)
-    False -> Error("Password & Confirm Password must match")
-  }
-}
-
 fn validate_params(data: dynamic.Dynamic) -> Result(RegisterParams, Errors) {
-  ve.parse(register_schema(), data, [
-    ve.cross("confirm_password", passwords_must_match),
-  ])
+  ve.parse(register_schema(), data, [])
   |> result.map_error(ErrorValidatingParams)
 }
 
@@ -195,9 +192,7 @@ fn form_payload(
 fn validate_form_params(
   values: List(#(String, String)),
 ) -> Result(RegisterParams, Errors) {
-  ve.parse_form(register_schema(), values, [
-    ve.cross("confirm_password", passwords_must_match),
-  ])
+  ve.parse_form(register_schema(), values, [])
   |> result.map_error(ErrorValidatingParams)
 }
 

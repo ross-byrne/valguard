@@ -49,7 +49,7 @@ pub fn custom_validation_function_fails_test() {
   assert ve.parse(schema, data, []) == expected
 }
 
-// ================== Cross-field via ve.cross ===================
+// ================== Post-parse via ve.validate ===================
 
 pub fn custom_multi_param_validation_function_passes_test() {
   let data =
@@ -65,7 +65,7 @@ pub fn custom_multi_param_validation_function_passes_test() {
 
   let actual =
     ve.parse(schema, data, [
-      ve.cross("confirm_password", fn(pair: #(String, String)) {
+      ve.validate("confirm_password", fn(pair: #(String, String)) {
         let #(pw, confirm) = pair
         cf.passwords_match(pw, confirm)
       }),
@@ -88,7 +88,7 @@ pub fn custom_multi_param_validation_function_fails_test() {
 
   let actual =
     ve.parse(schema, data, [
-      ve.cross("confirm_password", fn(pair: #(String, String)) {
+      ve.validate("confirm_password", fn(pair: #(String, String)) {
         let #(pw, confirm) = pair
         cf.passwords_match(pw, confirm)
       }),

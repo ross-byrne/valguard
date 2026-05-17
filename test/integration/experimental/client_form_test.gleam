@@ -1,4 +1,5 @@
 //// Integration testing a complex real-world valguard usage
+////
 //// - 9 fields with a realistic optional/required mix (1 required + 8 optional)
 //// - A DB-backed predicate that's context-aware (different behavior for
 ////   create vs update)
@@ -57,7 +58,6 @@ type Errors {
 /// Curried — takes the context and returns a `Predicate(String)`.
 fn client_email_available_for(
   _db: Connection,
-  _workspace_id: Int,
   client_id: Option(Int),
 ) -> ve.Predicate(String) {
   fn(email) {
@@ -112,13 +112,12 @@ fn country_is_valid(value: String) -> Result(Nil, String) {
 
 fn client_schema(
   db: Connection,
-  workspace_id: Int,
   client_id: Option(Int),
 ) -> ve.Schema(ClientParams) {
   let required = "This field is required"
   use email <- ve.optional_string_field("email", [
     ev.email_is_valid("Email address is not valid"),
-    client_email_available_for(db, workspace_id, client_id),
+    client_email_available_for(db, client_id),
   ])
   use first_name <- ve.string_field("first_name", required, [
     ev.string_not_empty(required),
@@ -153,12 +152,11 @@ fn client_schema(
 /// Cross-field phone validation runs only when per-field validation passed.
 fn validate(
   db: Connection,
-  workspace_id: Int,
   client_id: Option(Int),
   values: List(#(String, String)),
 ) -> Result(ClientParams, Errors) {
-  ve.parse_form(client_schema(db, workspace_id, client_id), values, [
-    ve.cross("phone_number", phone_number_is_valid),
+  ve.parse_form(client_schema(db, client_id), values, [
+    ve.validate("phone_number", phone_number_is_valid),
   ])
   |> result.map_error(ErrorValidatingParams)
 }
@@ -207,7 +205,7 @@ pub fn client_create_validates_with_just_first_name_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   assert actual
     == Ok(ClientParams(
       email: None,
@@ -237,7 +235,7 @@ pub fn client_create_validates_full_form_test() {
       country_alpha2: "US",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   assert actual
     == Ok(ClientParams(
       email: Some("alice@example.com"),
@@ -267,7 +265,7 @@ pub fn client_create_first_name_missing_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -292,7 +290,7 @@ pub fn client_create_email_taken_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -319,7 +317,7 @@ pub fn client_update_allows_current_email_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, Some(42), values)
+  let actual = validate(db, Some(42), values)
   assert actual
     == Ok(ClientParams(
       email: Some("current@me.com"),
@@ -353,7 +351,7 @@ pub fn client_create_rejects_email_other_clients_own_test() {
   // No exemption on create — but our sentinel only rejects "taken@example.com".
   // Confirm "current@me.com" is allowed (since no other client owns it in our
   // simulated DB), proving the context-aware predicate dispatches correctly.
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   assert actual
     == Ok(ClientParams(
       email: Some("current@me.com"),
@@ -384,7 +382,7 @@ pub fn client_invalid_email_format_short_circuits_db_check_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -410,7 +408,7 @@ pub fn client_phone_number_without_country_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -438,7 +436,7 @@ pub fn client_invalid_date_of_birth_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -464,7 +462,7 @@ pub fn client_invalid_enum_values_test() {
       country_alpha2: "ZZ",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -493,7 +491,7 @@ pub fn client_multiple_errors_accumulate_test() {
       country_alpha2: "",
     )
 
-  let actual = validate(db, 1, None, values)
+  let actual = validate(db, None, values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -516,7 +514,7 @@ pub fn client_dynamic_input_path_test() {
     ])
 
   let actual =
-    ve.parse(client_schema(db, 1, None), data, [])
+    ve.parse(client_schema(db, None), data, [])
     |> result.map_error(ErrorValidatingParams)
 
   assert actual
