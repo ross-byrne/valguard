@@ -47,58 +47,6 @@ fn validate_params(params: LoginParams) -> Result(Nil, Errors) {
 }
 ```
 
-## Experimental: parse + validate pipeline
-
-The `valguard/experimental` module is a parallel API that takes raw `Dynamic`
-input (e.g. a form payload or JSON body) and returns either a typed record or
-a list of every accumulated parse and validation error. A schema is just a
-`gleam/dynamic/decode.Decoder(t)` that you declare once and pass to
-`ve.parse(schema, data)`.
-
-```gleam
-import gleam/dynamic
-import gleam/dynamic/decode
-import gleam/result
-import valguard.{type ValidationError}
-import valguard/experimental as ve
-import valguard/validate as v
-
-type LoginParams {
-  LoginParams(email: String, password: String)
-}
-
-type Errors {
-  ErrorValidatingParams(List(ValidationError))
-}
-
-/// Schema declared as a function returning a Schema. Pass it to ve.parse.
-fn login_schema() -> ve.Schema(LoginParams) {
-  use email <- ve.field_with("email", decode.string, [
-    v.string_required(_, "This field is required"),
-    v.email_is_valid(_, "Email address is not valid"),
-  ])
-  use password <- ve.field_with("password", decode.string, [
-    v.string_required(_, "This field is required"),
-  ])
-  decode.success(LoginParams(email, password))
-}
-
-fn validate_login(data: dynamic.Dynamic) -> Result(LoginParams, Errors) {
-  ve.parse(login_schema(), data)
-  |> result.map_error(ErrorValidatingParams)
-}
-```
-
-For cross-field checks (e.g. password / confirm_password match), the
-recommended pattern is two-phase: run `ve.parse` first, then use
-`valguard.list` against the parsed record. See
-`test/integration/experimental/user_registration_test.gleam` for a full
-example. A one-pass `ve.success_with` is also available if you'd rather keep
-cross-field checks inside the schema.
-
-This module is experimental and may change before being promoted into the
-main `valguard` module.
-
 ## Goals
 
 - Perform exhaustive param validation for good form validation UX. Don't just stop on the first error

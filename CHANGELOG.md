@@ -3,10 +3,23 @@
 ## Unreleased
 
 - Added experimental `valguard/experimental` module: a parse + validate pipeline
-  built on `gleam/dynamic/decode` that takes raw `Dynamic` input and returns
-  the typed record or every accumulated error in one list. Provides
-  `parse`, `field_with`, `optional_field_with`, `check`, and `success_with`.
-  Existing API is unchanged.
+  built on `gleam/dynamic/decode` that takes raw `Dynamic` input (or form data
+  via `parse_form`) and returns the typed record or every accumulated error in
+  one list. Existing valguard API is unchanged.
+- Typed field combinators with a clear required/optional split:
+  - Required: `string_field`, `int_field`, `float_field`, `bool_field` each
+    take a `required_message` for missing-key or decoder-failure cases.
+  - Optional: `optional_string_field`, `optional_int_field`,
+    `optional_float_field`, `optional_bool_field` return `Option(t)`; missing
+    key, empty string `""`, and JSON null all produce `None`.
+  - Smart decoders accept both JSON-native and form-string inputs (e.g.
+    `int_field` parses both `42` and `"42"`).
+  - Escape hatches: `field_with` (with explicit placeholder) and
+    `optional_field_with`.
+- Added `valguard/experimental/validate` module with curried predicates:
+  `string_not_empty`, `string_min`/`max`/`length`/`starts_with`/`ends_with`/
+  `contains`, `email_is_valid`, `date_is_valid`, `uuid_v1`–`v7`,
+  `int_min`/`max`, `float_min`/`max`, `bool_true`/`false`.
 - Updated dependencies
 
 ## v0.7.1

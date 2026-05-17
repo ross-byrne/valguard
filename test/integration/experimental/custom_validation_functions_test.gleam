@@ -1,14 +1,8 @@
 //// Integration test mirroring custom_validation_functions_test.gleam against
 //// the experimental parse + validate pipeline.
-////
-//// Each scenario builds a small Dynamic payload, runs it through a schema
-//// that uses field_with / success_with, and asserts on the resulting list
-//// of ValidationErrors.
 
 import gleam/dynamic
-import gleam/dynamic/decode
-import gleam/result
-import integration/shared/custom_functions as cf
+import integration/experimental/shared/custom_functions as cf
 import valguard.{ValidationError}
 import valguard/experimental as ve
 
@@ -16,7 +10,7 @@ type Connection {
   Connection
 }
 
-// ================== Single-field predicate (was valguard.with) ===================
+// ================== Single-field predicate ===================
 
 pub fn custom_validation_function_passes_test() {
   let data =
@@ -24,15 +18,13 @@ pub fn custom_validation_function_passes_test() {
       #(dynamic.string("password"), dynamic.string("my-password")),
     ])
   let schema = {
-    use password <- ve.field_with("password", decode.string, [
+    use password <- ve.string_field("password", "Password is required", [
       cf.password_requirements,
     ])
-    decode.success(password)
+    ve.success(password)
   }
 
-  let actual = ve.parse(schema, data)
-  let expected = Ok("my-password")
-  assert actual == expected
+  assert ve.parse(schema, data, []) == Ok("my-password")
 }
 
 pub fn custom_validation_function_fails_test() {
@@ -41,13 +33,12 @@ pub fn custom_validation_function_fails_test() {
       #(dynamic.string("password"), dynamic.string("asdf")),
     ])
   let schema = {
-    use password <- ve.field_with("password", decode.string, [
+    use password <- ve.string_field("password", "Password is required", [
       cf.password_requirements,
     ])
-    decode.success(password)
+    ve.success(password)
   }
 
-  let actual = ve.parse(schema, data)
   let expected =
     Error([
       ValidationError(
@@ -55,10 +46,10 @@ pub fn custom_validation_function_fails_test() {
         value: "Password must be a minimum of 8 characters",
       ),
     ])
-  assert actual == expected
+  assert ve.parse(schema, data, []) == expected
 }
 
-// ================== Cross-field via success_with (was valguard.list) ===================
+// ================== Cross-field via ve.cross ===================
 
 pub fn custom_multi_param_validation_function_passes_test() {
   let data =
@@ -67,20 +58,20 @@ pub fn custom_multi_param_validation_function_passes_test() {
       #(dynamic.string("confirm_password"), dynamic.string("password")),
     ])
   let schema = {
-    use password <- ve.field_with("password", decode.string, [])
-    use confirm_password <- ve.field_with("confirm_password", decode.string, [])
-    ve.success_with(#(password, confirm_password), [
-      fn(pair) {
-        let #(pw, confirm) = pair
-        cf.passwords_match(pw, confirm)
-        |> result.map_error(ValidationError("confirm_password", _))
-      },
-    ])
+    use password <- ve.string_field("password", "Required", [])
+    use confirm_password <- ve.string_field("confirm_password", "Required", [])
+    ve.success(#(password, confirm_password))
   }
 
-  let actual = ve.parse(schema, data)
-  let expected = Ok(#("password", "password"))
-  assert actual == expected
+  let actual =
+    ve.parse(schema, data, [
+      ve.cross("confirm_password", fn(pair: #(String, String)) {
+        let #(pw, confirm) = pair
+        cf.passwords_match(pw, confirm)
+      }),
+    ])
+
+  assert actual == Ok(#("password", "password"))
 }
 
 pub fn custom_multi_param_validation_function_fails_test() {
@@ -90,18 +81,19 @@ pub fn custom_multi_param_validation_function_fails_test() {
       #(dynamic.string("confirm_password"), dynamic.string("wrong-password")),
     ])
   let schema = {
-    use password <- ve.field_with("password", decode.string, [])
-    use confirm_password <- ve.field_with("confirm_password", decode.string, [])
-    ve.success_with(#(password, confirm_password), [
-      fn(pair) {
-        let #(pw, confirm) = pair
-        cf.passwords_match(pw, confirm)
-        |> result.map_error(ValidationError("confirm_password", _))
-      },
-    ])
+    use password <- ve.string_field("password", "Required", [])
+    use confirm_password <- ve.string_field("confirm_password", "Required", [])
+    ve.success(#(password, confirm_password))
   }
 
-  let actual = ve.parse(schema, data)
+  let actual =
+    ve.parse(schema, data, [
+      ve.cross("confirm_password", fn(pair: #(String, String)) {
+        let #(pw, confirm) = pair
+        cf.passwords_match(pw, confirm)
+      }),
+    ])
+
   let expected =
     Error([
       ValidationError(
@@ -121,15 +113,13 @@ pub fn custom_validation_function_with_database_connection_passes_test() {
       #(dynamic.string("email"), dynamic.string("example@test.com")),
     ])
   let schema = {
-    use email <- ve.field_with("email", decode.string, [
-      cf.user_email_is_available(db, _),
+    use email <- ve.string_field("email", "Email is required", [
+      cf.user_email_is_available(db),
     ])
-    decode.success(email)
+    ve.success(email)
   }
 
-  let actual = ve.parse(schema, data)
-  let expected = Ok("example@test.com")
-  assert actual == expected
+  assert ve.parse(schema, data, []) == Ok("example@test.com")
 }
 
 pub fn custom_validation_function_with_database_connection_fails_test() {
@@ -139,14 +129,13 @@ pub fn custom_validation_function_with_database_connection_fails_test() {
       #(dynamic.string("email"), dynamic.string("email@taken.com")),
     ])
   let schema = {
-    use email <- ve.field_with("email", decode.string, [
-      cf.user_email_is_available(db, _),
+    use email <- ve.string_field("email", "Email is required", [
+      cf.user_email_is_available(db),
     ])
-    decode.success(email)
+    ve.success(email)
   }
 
-  let actual = ve.parse(schema, data)
   let expected =
     Error([ValidationError("email", "Email address is not available")])
-  assert actual == expected
+  assert ve.parse(schema, data, []) == expected
 }

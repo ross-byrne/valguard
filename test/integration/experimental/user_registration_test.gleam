@@ -1,24 +1,15 @@
 //// Integration test mirroring user_registeration_test.gleam against the
-//// experimental parse + validate pipeline.
-////
-//// Demonstrates the recommended two-phase pattern: ve.parse handles parsing
-//// and per-field validation, then valguard.list runs cross-field checks
-//// (passwords_match) only after the parse has succeeded.
+//// experimental parse + validate pipeline. Demonstrates per-field validation
+//// plus cross-field validation (passwords_match) in a single ve.parse call.
 
 import gleam/dynamic
-import gleam/dynamic/decode
 import gleam/result
 import integration/experimental/shared/fixtures
-import integration/shared/custom_functions as cf
 import valguard.{type ValidationError, ValidationError}
 import valguard/experimental as ve
-import valguard/validate as v
+import valguard/experimental/validate as ev
 
 // ================== Test setup ===================
-
-type Connection {
-  Connection
-}
 
 type RegisterParams {
   RegisterParams(
@@ -34,28 +25,18 @@ type Errors {
   ErrorValidatingParams(List(ValidationError))
 }
 
-fn register_schema(db: Connection) -> ve.Schema(RegisterParams) {
+fn register_schema() -> ve.Schema(RegisterParams) {
   let required = "This field is required"
-  use first_name <- ve.field_with("first_name", decode.string, [
-    v.string_required(_, required),
+  use first_name <- ve.string_field("first_name", required, [])
+  use last_name <- ve.string_field("last_name", required, [])
+  use email <- ve.string_field("email", required, [
+    ev.email_is_valid("Email address is not valid"),
   ])
-  use last_name <- ve.field_with("last_name", decode.string, [
-    v.string_required(_, required),
+  use password <- ve.string_field("password", required, [
+    ev.string_min(8, "Password must be a minimum of 8 characters"),
   ])
-  use email <- ve.field_with("email", decode.string, [
-    v.string_required(_, required),
-    v.email_is_valid(_, "Email address is not valid"),
-    cf.user_email_is_available(db, _),
-  ])
-  use password <- ve.field_with("password", decode.string, [
-    v.string_required(_, required),
-    cf.password_requirements,
-  ])
-  use confirm_password <- ve.field_with("confirm_password", decode.string, [
-    v.string_required(_, required),
-  ])
-
-  decode.success(RegisterParams(
+  use confirm_password <- ve.string_field("confirm_password", required, [])
+  ve.success(RegisterParams(
     first_name,
     last_name,
     email,
@@ -64,30 +45,19 @@ fn register_schema(db: Connection) -> ve.Schema(RegisterParams) {
   ))
 }
 
-fn validate_params(
-  db: Connection,
-  data: dynamic.Dynamic,
-) -> Result(RegisterParams, Errors) {
-  // Phase 1: parse + per-field. All accumulated errors come back at once.
-  use params <- result.try(
-    ve.parse(register_schema(db), data)
-    |> result.map_error(ErrorValidatingParams),
-  )
-
-  // Phase 2: cross-field. Only runs when phase 1 succeeded, so the cross-field
-  // check never sees placeholder values from a failed earlier decode.
-  let cross_field_errors =
-    [
-      valguard.list("confirm_password", [
-        fn() { cf.passwords_match(params.password, params.confirm_password) },
-      ]),
-    ]
-    |> valguard.collect_errors
-
-  case cross_field_errors {
-    [] -> Ok(params)
-    errors -> Error(ErrorValidatingParams(errors))
+/// Cross-field check: password and confirm_password must match.
+fn passwords_must_match(p: RegisterParams) -> Result(Nil, String) {
+  case p.password == p.confirm_password {
+    True -> Ok(Nil)
+    False -> Error("Password & Confirm Password must match")
   }
+}
+
+fn validate_params(data: dynamic.Dynamic) -> Result(RegisterParams, Errors) {
+  ve.parse(register_schema(), data, [
+    ve.cross("confirm_password", passwords_must_match),
+  ])
+  |> result.map_error(ErrorValidatingParams)
 }
 
 fn payload(
@@ -109,11 +79,10 @@ fn payload(
 // ================== Tests ===================
 
 pub fn register_form_validates_successfully_test() {
-  let db = Connection
   let data =
     payload("Jim", "Bean", "testing@test.com", "qwerty123", "qwerty123")
 
-  let result = validate_params(db, data)
+  let result = validate_params(data)
   assert result
     == Ok(RegisterParams(
       first_name: "Jim",
@@ -125,13 +94,9 @@ pub fn register_form_validates_successfully_test() {
 }
 
 pub fn register_form_is_missing_fields_test() {
-  // Real HTML forms always submit keys; empty inputs arrive as "". The schema's
-  // string_required predicates handle the "blank" case. (For JSON APIs where
-  // a key may be genuinely absent, use optional_field_with with a default.)
-  let db = Connection
   let data = payload("", "", "", "", "")
 
-  let actual = validate_params(db, data)
+  let actual = validate_params(data)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -149,26 +114,10 @@ pub fn register_form_is_missing_fields_test() {
   assert actual == expected
 }
 
-pub fn register_form_email_is_taken_test() {
-  let db = Connection
-  let data = payload("Jim", "Bean", "email@taken.com", "qwerty123", "qwerty123")
-
-  let actual = validate_params(db, data)
-  let expected =
-    Error(
-      ErrorValidatingParams([
-        ValidationError(key: "email", value: "Email address is not available"),
-      ]),
-    )
-
-  assert actual == expected
-}
-
 pub fn register_form_password_is_too_short_test() {
-  let db = Connection
   let data = payload("Jim", "Bean", "test@test.com", "qwe", "qwe")
 
-  let actual = validate_params(db, data)
+  let actual = validate_params(data)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -183,10 +132,9 @@ pub fn register_form_password_is_too_short_test() {
 }
 
 pub fn register_form_passwords_dont_match_test() {
-  let db = Connection
   let data = payload("Jim", "Bean", "test@test.com", "qwerty123", "asdfgh1235")
 
-  let actual = validate_params(db, data)
+  let actual = validate_params(data)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -200,13 +148,64 @@ pub fn register_form_passwords_dont_match_test() {
   assert actual == expected
 }
 
-// ================== End-to-end with a JSON fixture ===================
+// Cross-field is gated on per-field success: when first_name and password
+// are empty, those per-field errors come back AND the cross-field check
+// (passwords_must_match) does NOT run against placeholder values.
+pub fn register_form_cross_field_gated_on_per_field_success_test() {
+  let data = payload("", "", "", "", "")
 
-pub fn json_registration_validates_successfully_test() {
-  let db = Connection
-  let data = fixtures.load("valid_registration.json")
+  let actual = validate_params(data)
+  let expected =
+    Error(
+      ErrorValidatingParams([
+        ValidationError(key: "first_name", value: "This field is required"),
+        ValidationError(key: "last_name", value: "This field is required"),
+        ValidationError(key: "email", value: "This field is required"),
+        ValidationError(key: "password", value: "This field is required"),
+        ValidationError(
+          key: "confirm_password",
+          value: "This field is required",
+        ),
+      ]),
+    )
 
-  let actual = validate_params(db, data)
+  // No "Password & Confirm Password must match" error — the cross-field
+  // check is skipped when per-field validation fails.
+  assert actual == expected
+}
+
+// ================== Native form-data via parse_form ===================
+
+fn form_payload(
+  first_name: String,
+  last_name: String,
+  email: String,
+  password: String,
+  confirm_password: String,
+) -> List(#(String, String)) {
+  [
+    #("first_name", first_name),
+    #("last_name", last_name),
+    #("email", email),
+    #("password", password),
+    #("confirm_password", confirm_password),
+  ]
+}
+
+fn validate_form_params(
+  values: List(#(String, String)),
+) -> Result(RegisterParams, Errors) {
+  ve.parse_form(register_schema(), values, [
+    ve.cross("confirm_password", passwords_must_match),
+  ])
+  |> result.map_error(ErrorValidatingParams)
+}
+
+pub fn parse_form_registration_validates_successfully_test() {
+  let values =
+    form_payload("Jim", "Bean", "testing@test.com", "qwerty123", "qwerty123")
+
+  let actual = validate_form_params(values)
   assert actual
     == Ok(RegisterParams(
       first_name: "Jim",
@@ -217,11 +216,10 @@ pub fn json_registration_validates_successfully_test() {
     ))
 }
 
-pub fn json_registration_returns_validation_errors_test() {
-  let db = Connection
-  let data = fixtures.load("invalid_registration.json")
+pub fn parse_form_registration_accumulates_field_errors_test() {
+  let values = form_payload("", "Bean", "not-an-email", "qwe", "qwe")
 
-  let actual = validate_params(db, data)
+  let actual = validate_form_params(values)
   let expected =
     Error(
       ErrorValidatingParams([
@@ -237,72 +235,13 @@ pub fn json_registration_returns_validation_errors_test() {
   assert actual == expected
 }
 
-// ================== success_with one-pass alternative ===================
-//
-// Same end-to-end behavior as the two-phase pattern above, but cross-field
-// checks live inside the schema. Use this when you want a single pipeline and
-// accept that cross-field checks may run against placeholder values when an
-// earlier field decode failed.
+// ================== End-to-end with a JSON fixture ===================
 
-fn register_schema_one_pass(db: Connection) -> ve.Schema(RegisterParams) {
-  let required = "This field is required"
-  use first_name <- ve.field_with("first_name", decode.string, [
-    v.string_required(_, required),
-  ])
-  use last_name <- ve.field_with("last_name", decode.string, [
-    v.string_required(_, required),
-  ])
-  use email <- ve.field_with("email", decode.string, [
-    v.string_required(_, required),
-    v.email_is_valid(_, "Email address is not valid"),
-    cf.user_email_is_available(db, _),
-  ])
-  use password <- ve.field_with("password", decode.string, [
-    v.string_required(_, required),
-    cf.password_requirements,
-  ])
-  use confirm_password <- ve.field_with("confirm_password", decode.string, [
-    v.string_required(_, required),
-  ])
+pub fn json_registration_validates_successfully_test() {
+  let data = fixtures.load("valid_registration.json")
 
-  ve.success_with(
-    RegisterParams(first_name, last_name, email, password, confirm_password),
-    [
-      fn(p: RegisterParams) {
-        cf.passwords_match(p.password, p.confirm_password)
-        |> result.map_error(ValidationError("confirm_password", _))
-      },
-    ],
-  )
-}
-
-pub fn one_pass_register_form_passwords_dont_match_test() {
-  let db = Connection
-  let data = payload("Jim", "Bean", "test@test.com", "qwerty123", "asdfgh1235")
-
-  let actual =
-    ve.parse(register_schema_one_pass(db), data)
-    |> result.map_error(ErrorValidatingParams)
-  let expected =
-    Error(
-      ErrorValidatingParams([
-        ValidationError(
-          key: "confirm_password",
-          value: "Password & Confirm Password must match",
-        ),
-      ]),
-    )
-
-  assert actual == expected
-}
-
-pub fn one_pass_register_form_validates_successfully_test() {
-  let db = Connection
-  let data =
-    payload("Jim", "Bean", "testing@test.com", "qwerty123", "qwerty123")
-
-  let result = ve.parse(register_schema_one_pass(db), data)
-  assert result
+  let actual = validate_params(data)
+  assert actual
     == Ok(RegisterParams(
       first_name: "Jim",
       last_name: "Bean",
@@ -312,24 +251,18 @@ pub fn one_pass_register_form_validates_successfully_test() {
     ))
 }
 
-// Demonstrates the success_with caveat: when password and confirm_password are
-// both empty, the per-field "required" errors fire AND passwords_match("", "")
-// silently returns Ok against the placeholder values, so no cross-field error
-// surfaces. Use the two-phase pattern when this matters.
-pub fn one_pass_cross_field_runs_against_placeholder_values_test() {
-  let db = Connection
-  let data = payload("Jim", "Bean", "test@test.com", "", "")
+pub fn json_registration_returns_validation_errors_test() {
+  let data = fixtures.load("invalid_registration.json")
 
-  let actual =
-    ve.parse(register_schema_one_pass(db), data)
-    |> result.map_error(ErrorValidatingParams)
+  let actual = validate_params(data)
   let expected =
     Error(
       ErrorValidatingParams([
-        ValidationError(key: "password", value: "This field is required"),
+        ValidationError(key: "first_name", value: "This field is required"),
+        ValidationError(key: "email", value: "Email address is not valid"),
         ValidationError(
-          key: "confirm_password",
-          value: "This field is required",
+          key: "password",
+          value: "Password must be a minimum of 8 characters",
         ),
       ]),
     )
